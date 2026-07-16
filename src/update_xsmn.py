@@ -224,7 +224,19 @@ def generate_html(lottery: XSMNLottery):
                 <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số cao</h3><div id="mlTop"></div></div>
                 <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số thấp</h3><div id="mlBottom"></div></div>
             </div>
-            <div class="ml-box">
+            <div class="two-col" style="margin-top:15px">
+                <div class="ml-box" style="background:linear-gradient(135deg,#2ecc71,#27ae60)">
+                    <h3>Hôm nay</h3>
+                    <div class="nums" id="predToday"></div>
+                    <small id="predTodayInfo"></small>
+                </div>
+                <div class="ml-box" style="background:linear-gradient(135deg,#9b59b6,#8e44ad)">
+                    <h3>Ngày mai</h3>
+                    <div class="nums" id="predTomorrow"></div>
+                    <small id="predTomorrowInfo"></small>
+                </div>
+            </div>
+            <div class="ml-box" style="margin-top:15px">
                 <h3>Gợi ý con số may mắn</h3>
                 <div class="nums" id="mlPred"></div>
                 <small>Dựa trên phân tích tần suất + độ trễ</small>
@@ -508,6 +520,25 @@ function renderML() {{
         const sel = selectedNum === parseInt(n) ? ' style="outline:2px solid #f39c12"' : '';
         return `<div class="bar-row"${{sel}} onclick="selectNumber(${{n}})"><div class="bar-label">${{n}}</div><div class="bar" style="width:${{p}}%;background:hsl(${{240-p}},50%,60%)">${{(s*100).toFixed(1)}}%</div></div>`;
     }}).join('');
+
+    // Predictions for today and tomorrow
+    const latestDate = ALL_DATES[ALL_DATES.length - 1];
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+    // Today prediction: top 6 from overdue (numbers not appeared longest)
+    const overdueNums = Object.entries(ls).map(([n,i]) => [parseInt(n), i===-1?total:total-1-i]).sort((a,b)=>b[1]-a[1]);
+    const todayPred = overdueNums.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
+    const todayInfo = latestDate === today ? 'Dựa trên dữ liệu mới nhất' : `Dữ liệu đến ${fmtD(latestDate)}`;
+    document.getElementById('predToday').textContent = todayPred;
+    document.getElementById('predTodayInfo').textContent = todayInfo;
+
+    // Tomorrow prediction: top 6 from combined score
+    const tomorrowPred = sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
+    const tomorrowInfo = `Phân tích tần suất + độ trễ ${total} kỳ`;
+    document.getElementById('predTomorrow').textContent = tomorrowPred;
+    document.getElementById('predTomorrowInfo').textContent = tomorrowInfo;
+
     document.getElementById('mlPred').textContent = sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
 }}
 
