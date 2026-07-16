@@ -49,8 +49,9 @@ jobs:
 
       - name: Update GitHub Pages
         run: |
+          cp readme.html /tmp/readme.html
           git checkout gh-pages
-          cp ../readme.html . 2>/dev/null || cp readme.html .
+          cp /tmp/readme.html .
           git add readme.html
           if git diff --quiet; then
             echo "No changes to gh-pages"
