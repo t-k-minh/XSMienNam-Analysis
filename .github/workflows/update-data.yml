@@ -25,8 +25,11 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --no-dev --no-install-project
 
-      - name: Update XSMN data and generate HTML
+      - name: Update XSMN data and generate readme.html
         run: uv run src/update_xsmn.py
+
+      - name: Analyze data and generate README.md
+        run: uv run src/analyze.py
 
       - name: Commit changes
         run: |
