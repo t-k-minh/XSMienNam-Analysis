@@ -1,5 +1,5 @@
 [project]
-name = "vietnam-lottery-xsmb-analysis"
+name = "vietnam-lottery-xsmiennam-analysis"
 version = "0.1.0"
 description = "Using GitHub Action to automatically fetch and analyze results of the Vietnam lottery daily."
 authors = [
