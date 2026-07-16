@@ -6,74 +6,77 @@
     <title>XSMN - Phân tích</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        header { background: linear-gradient(135deg, #1a5276, #2e86c1); color: white; padding: 25px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-        header h1 { font-size: 26px; }
-        .controls { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-        .row:last-child { margin-bottom: 0; }
-        label { font-weight: 600; font-size: 13px; color: #555; }
-        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; }
-        .btn { background: #2e86c1; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600; }
-        .btn:hover { background: #1a5276; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; background: #ecf0f1; color: #555; border: 1px solid #ddd; cursor: pointer; }
-        .btn-sm:hover { background: #d5dbdb; }
-        .btn-sm.active { background: #2e86c1; color: white; border-color: #2e86c1; }
-        .btn-nav { background: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-nav:hover { background: #219a52; }
-        .btn-nav:disabled { background: #bdc3c7; cursor: not-allowed; }
-        .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .card h2 { color: #1a5276; margin-bottom: 12px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        .context-info { background: #fff3cd; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #856404; border-left: 4px solid #ffc107; }
-        .date-nav { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .date-nav .date { font-size: 18px; font-weight: 600; color: #1a5276; min-width: 150px; text-align: center; }
-        .tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px; }
-        .tab { background: #ecf0f1; border: 1px solid #ddd; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; }
-        .tab:hover { background: #d5dbdb; }
-        .tab.active { background: #2e86c1; color: white; border-color: #2e86c1; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 30px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        header h1 { font-size: 28px; color: #1a5276; margin-bottom: 5px; }
+        header p { color: #666; font-size: 14px; }
+        .card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+        .card h2 { color: #1a5276; margin-bottom: 16px; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .card h2::before { content: ''; width: 4px; height: 20px; background: linear-gradient(135deg, #2e86c1, #1a5276); border-radius: 2px; }
+        .filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 10px; }
+        .filter-row label { font-weight: 600; font-size: 13px; color: #555; white-space: nowrap; }
+        .filter-row select { padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; background: white; min-width: 180px; }
+        .filter-row select:focus { border-color: #2e86c1; outline: none; }
+        .btn-group { display: flex; gap: 6px; }
+        .btn-sm { padding: 8px 14px; font-size: 12px; background: white; color: #555; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-sm:hover { background: #e8f4f8; border-color: #2e86c1; }
+        .btn-sm.active { background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; border-color: transparent; }
+        .btn-clear { padding: 8px 14px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 2px solid #fecaca; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: auto; }
+        .btn-clear:hover { background: #fecaca; }
+        .date-nav { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 16px; }
+        .date-nav .date { font-size: 20px; font-weight: 700; color: #1a5276; min-width: 160px; text-align: center; }
+        .btn-nav { background: linear-gradient(135deg, #27ae60, #219a52); color: white; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.2s; }
+        .btn-nav:hover { transform: scale(1.05); }
+        .btn-nav:disabled { background: #bdc3c7; cursor: not-allowed; transform: none; }
+        .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .tab { background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+        .tab:hover { background: #e0e0e0; }
+        .tab.active { background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .grid10 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
-        .cell { padding: 6px 2px; text-align: center; border-radius: 3px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .cell .n { display: block; font-size: 12px; }
-        .cell .v { display: block; font-size: 10px; opacity: 0.8; }
-        .cell.selected { outline: 3px solid #f39c12; outline-offset: 1px; transform: scale(1.1); z-index: 10; position: relative; }
-        .hot { background: #e74c3c; color: white; }
-        .warm { background: #f39c12; color: white; }
-        .normal { background: #3498db; color: white; }
-        .cool { background: #9b59b6; color: white; }
-        .cold { background: #34495e; color: white; }
-        .bar-row { display: flex; align-items: center; margin-bottom: 4px; cursor: pointer; }
-        .bar-row:hover { opacity: 0.8; }
-        .bar-label { width: 28px; text-align: right; margin-right: 6px; font-weight: 600; font-size: 11px; }
-        .bar { height: 18px; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; color: white; font-size: 10px; font-weight: 600; }
-        .ml-box { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 12px; }
-        .ml-box .nums { font-size: 24px; font-weight: bold; letter-spacing: 3px; margin: 8px 0; }
-        .ml-box small { font-size: 11px; opacity: 0.8; }
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .table-wrap { overflow-x: auto; border: 1px solid #ddd; border-radius: 6px; max-width: 800px; margin: 0 auto; }
+        .grid10 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+        .cell { padding: 8px 4px; text-align: center; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .cell:hover { transform: scale(1.05); }
+        .cell .n { display: block; font-size: 14px; }
+        .cell .v { display: block; font-size: 11px; opacity: 0.85; margin-top: 2px; }
+        .cell.selected { outline: 3px solid #f39c12; outline-offset: 2px; transform: scale(1.1); z-index: 10; position: relative; }
+        .hot { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }
+        .warm { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }
+        .normal { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+        .cool { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }
+        .cold { background: linear-gradient(135deg, #34495e, #2c3e50); color: white; }
+        .bar-row { display: flex; align-items: center; margin-bottom: 6px; cursor: pointer; padding: 2px 0; }
+        .bar-row:hover { opacity: 0.85; }
+        .bar-label { width: 30px; text-align: right; margin-right: 8px; font-weight: 700; font-size: 12px; }
+        .bar { height: 22px; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; color: white; font-size: 11px; font-weight: 600; min-width: 30px; }
+        .predict-box { padding: 20px; border-radius: 12px; text-align: center; color: white; }
+        .predict-box h3 { font-size: 14px; margin-bottom: 10px; opacity: 0.9; }
+        .predict-box .nums { font-size: 28px; font-weight: 800; letter-spacing: 2px; margin: 12px 0; }
+        .predict-box small { font-size: 11px; opacity: 0.8; }
+        .predict-today { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .predict-tomorrow { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .predict-main { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .table-wrap { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 5px 3px; text-align: center; border: 1px solid #eee; font-size: 12px; white-space: nowrap; }
-        th { background: #2e86c1; color: white; font-size: 11px; }
-        th:first-child { background: #1a5276; width: 50px; }
-        td { min-width: 60px; }
+        th, td { padding: 8px 6px; text-align: center; border: 1px solid #f0f0f0; font-size: 12px; white-space: nowrap; }
+        th { background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; font-size: 11px; }
+        th:first-child { background: #1a5276; }
+        td { min-width: 70px; }
         tr:hover { background: #e8f4f8; }
-        .row-even { background: #f8f9fa; }
-        .row-odd { background: white; }
-        .sp { color: #e74c3c; font-weight: bold; font-size: 15px; }
-        td.highlight { background: #fff3cd !important; color: #856404; font-weight: bold; }
-        .num-highlight { background: #ff9800 !important; color: white !important; font-weight: bold; border-radius: 3px; padding: 0 2px; }
-        .selected-num { background: #f39c12; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
-        .filter-bar { display: flex; gap: 5px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 6px; margin-top: 10px; flex-wrap: wrap; }
-        .filter-bar .btn-num { width: 32px; height: 32px; padding: 0; font-size: 14px; font-weight: 700; border-radius: 4px; border: 2px solid #ddd; background: white; cursor: pointer; }
-        .filter-bar .btn-num:hover { background: #e8f4f8; }
-        .filter-bar .btn-num.active { background: #ff9800; color: white; border-color: #ff9800; }
-        .filter-bar .btn-type { padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 4px; border: 1px solid #ddd; background: white; cursor: pointer; }
-        .filter-bar .btn-type:hover { background: #e8f4f8; }
-        .filter-bar .btn-type.active { background: #e74c3c; color: white; border-color: #e74c3c; }
-        footer { text-align: center; padding: 15px; color: #999; font-size: 12px; }
-        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } .grid10 { grid-template-columns: repeat(5, 1fr); } }
+        .sp { color: #e74c3c; font-weight: bold; font-size: 14px; }
+        .filter-bar { display: flex; gap: 6px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .filter-bar .btn-num { width: 36px; height: 36px; padding: 0; font-size: 14px; font-weight: 700; border-radius: 8px; border: 2px solid #e0e0e0; background: white; cursor: pointer; transition: all 0.2s; }
+        .filter-bar .btn-num:hover { background: #e8f4f8; border-color: #2e86c1; }
+        .filter-bar .btn-num.active { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-color: transparent; }
+        .filter-bar .btn-type { padding: 8px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 2px solid #e0e0e0; background: white; cursor: pointer; transition: all 0.2s; }
+        .filter-bar .btn-type:hover { background: #e8f4f8; border-color: #2e86c1; }
+        .filter-bar .btn-type.active { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border-color: transparent; }
+        footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 12px; }
+        .no-province { background: #fff3cd; padding: 40px; border-radius: 12px; text-align: center; color: #856404; font-size: 16px; }
+        .no-province::before { content: '⚠️'; font-size: 48px; display: block; margin-bottom: 12px; }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } .grid10 { grid-template-columns: repeat(5, 1fr); } .filter-row { flex-direction: column; align-items: stretch; } }
     </style>
 </head>
 <body>
@@ -83,21 +86,53 @@
         <p>22 tỉnh thành | 1763 kết quả</p>
     </header>
 
-    <div class="controls">
-        <div class="row">
-            <label>Tỉnh:</label>
-            <select id="selProvince" onchange="applyFilter()">
-                <option value="all">Tất cả tỉnh</option>
-            </select>
-            <label style="margin-left:15px">Phân tích khoảng:</label>
-            <button class="btn-sm" onclick="quickFilter(30)">30 ngày</button>
-            <button class="btn-sm" onclick="quickFilter(90)">3 tháng</button>
-            <button class="btn-sm" onclick="quickFilter(180)">6 tháng</button>
-            <button class="btn-sm" onclick="quickFilter(365)">1 năm</button>
-            <button class="btn-sm active" onclick="quickFilter(0)">Tất cả</button>
-            <button class="btn" onclick="clearHighlight()" style="margin-left:auto;background:#e74c3c">Bỏ chọn số</button>
+    <div class="card">
+        <h2>Kết quả xổ số</h2>
+        <div class="date-nav">
+            <button class="btn-nav" id="btnPrev" onclick="prevDay()">&#9664;</button>
+            <div class="date" id="currentDate"></div>
+            <button class="btn-nav" id="btnNext" onclick="nextDay()">&#9654;</button>
+        </div>
+        <div class="table-wrap">
+            <table id="resultTable">
+                <thead id="resultHead"></thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+        <div class="filter-bar">
+            <button class="btn-type active" onclick="setFilterType('full', this)">Đầy đủ</button>
+            <button class="btn-type" onclick="setFilterType('2so', this)">2 số</button>
+            <button class="btn-type" onclick="setFilterType('3so', this)">3 số</button>
+            <span style="margin: 0 8px; color: #ccc">|</span>
+            <button class="btn-num" onclick="filterByNum(0, this)">0</button>
+            <button class="btn-num" onclick="filterByNum(1, this)">1</button>
+            <button class="btn-num" onclick="filterByNum(2, this)">2</button>
+            <button class="btn-num" onclick="filterByNum(3, this)">3</button>
+            <button class="btn-num" onclick="filterByNum(4, this)">4</button>
+            <button class="btn-num" onclick="filterByNum(5, this)">5</button>
+            <button class="btn-num" onclick="filterByNum(6, this)">6</button>
+            <button class="btn-num" onclick="filterByNum(7, this)">7</button>
+            <button class="btn-num" onclick="filterByNum(8, this)">8</button>
+            <button class="btn-num" onclick="filterByNum(9, this)">9</button>
         </div>
     </div>
+
+    <div class="card">
+        <h2>Phân tích dự đoán</h2>
+        <div class="filter-row">
+            <label>Tỉnh:</label>
+            <select id="selProvince" onchange="applyFilter()">
+            </select>
+            <label>Khoảng:</label>
+            <div class="btn-group">
+                <button class="btn-sm" onclick="quickFilter(30)">30 ngày</button>
+                <button class="btn-sm" onclick="quickFilter(90)">3 tháng</button>
+                <button class="btn-sm" onclick="quickFilter(180)">6 tháng</button>
+                <button class="btn-sm" onclick="quickFilter(365)">1 năm</button>
+                <button class="btn-sm active" onclick="quickFilter(0)">Tất cả</button>
+            </div>
+            <button class="btn-clear" onclick="clearHighlight()">Bỏ chọn</button>
+        </div>
 
     <div class="card">
         <h2>Kết quả xổ số</h2>
@@ -184,16 +219,18 @@ const DATA = [{"date": "2025-01-02", "province": "TNI", "province_name": "Tây N
 const PROVINCES = [{"code": "AG", "name": "An Giang"}, {"code": "BD", "name": "B\u00ecnh D\u01b0\u01a1ng"}, {"code": "BL", "name": "B\u1ea1c Li\u00eau"}, {"code": "BP", "name": "B\u00ecnh Ph\u01b0\u1edbc"}, {"code": "BTH", "name": "B\u00ecnh Thu\u1eadn"}, {"code": "BTR", "name": "B\u1ebfn Tre"}, {"code": "CM", "name": "C\u00e0 Mau"}, {"code": "CT", "name": "C\u1ea7n Th\u01a1"}, {"code": "DL", "name": "\u0110\u00e0 L\u1ea1t"}, {"code": "DNA", "name": "\u0110\u1ed3ng Nai"}, {"code": "DT", "name": "\u0110\u1ed3ng Th\u00e1p"}, {"code": "HCM", "name": "TP. H\u1ed3 Ch\u00ed Minh"}, {"code": "HGG", "name": "H\u1eadu Giang"}, {"code": "KG", "name": "Ki\u00ean Giang"}, {"code": "LA", "name": "Long An"}, {"code": "ST", "name": "S\u00f3c Tr\u0103ng"}, {"code": "TGI", "name": "Ti\u1ec1n Giang"}, {"code": "TNI", "name": "T\u00e2y Ninh"}, {"code": "TTP", "name": "TP. H\u1ed3 Ch\u00ed Minh"}, {"code": "TV", "name": "Tr\u00e0 Vinh"}, {"code": "VL", "name": "V\u0129nh Long"}, {"code": "VT", "name": "V\u0169ng T\u00e0u"}];
 const ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
 
-let filtered = [...DATA];
-let curProvince = 'all';
+let filtered = [];
+let curProvince = '';
 let curDateIdx = ALL_DATES.length - 1;
 let selectedNum = null;
 let filterDigit = null;
-let filterType = 'full'; // 'full', '2so', '3so'
+let filterType = 'full';
 
 // Init province select
 const sel = document.getElementById('selProvince');
 PROVINCES.forEach(p => { const o = document.createElement('option'); o.value = p.code; o.textContent = p.name; sel.appendChild(o); });
+sel.value = PROVINCES[0].code;
+curProvince = PROVINCES[0].code;
 
 function fmt(n) { return String(n).padStart(6, '0'); }
 function fmtD(s) { const [y,m,d] = s.split('-'); return d+'/'+m+'/'+y; }
@@ -208,7 +245,11 @@ function formatByType(val, type) {
 
 function applyFilter() {
     curProvince = document.getElementById('selProvince').value;
-    filtered = curProvince === 'all' ? [...DATA] : DATA.filter(d => d.province === curProvince);
+    if (!curProvince) {
+        filtered = [];
+    } else {
+        filtered = DATA.filter(d => d.province === curProvince);
+    }
     const filteredDates = [...new Set(filtered.map(d => d.date))].sort();
     curDateIdx = filteredDates.length - 1;
     renderResultTable();
@@ -219,7 +260,7 @@ function quickFilter(days) {
     document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
     if (days === 0) {
-        filtered = curProvince === 'all' ? [...DATA] : DATA.filter(d => d.province === curProvince);
+        filtered = DATA.filter(d => d.province === curProvince);
     } else {
         const latest = ALL_DATES[ALL_DATES.length - 1];
         const cutoff = new Date(latest);
@@ -277,10 +318,13 @@ function renderResultTable() {
     document.getElementById('btnPrev').disabled = curDateIdx === 0;
     document.getElementById('btnNext').disabled = curDateIdx === ALL_DATES.length - 1;
 
-    let dayData = DATA.filter(d => d.date === date);
-    if (curProvince !== 'all') {
-        dayData = dayData.filter(d => d.province === curProvince);
+    if (!curProvince) {
+        document.getElementById('resultHead').innerHTML = '';
+        document.getElementById('resultBody').innerHTML = '<tr><td colspan="10" style="padding:40px;color:#999">Vui lòng chọn tỉnh để xem kết quả</td></tr>';
+        return;
     }
+
+    let dayData = DATA.filter(d => d.date === date && d.province === curProvince);
     const provCodes = dayData.map(d => d.province);
 
     let headerHtml = '<tr><th>Giải</th>';
@@ -481,11 +525,31 @@ function showTab(el, id) {
     document.getElementById('tab-'+id).classList.add('active');
 }
 
-function renderAnalysis() { updateAnalysisContext(); renderFreq(); renderOverdue(); renderHeadTail(); renderML(); }
+function renderAnalysis() {
+    if (filtered.length === 0) {
+        document.getElementById('analysisContext').innerHTML = 'Vui lòng chọn tỉnh để xem phân tích';
+        document.getElementById('freqGrid').innerHTML = '';
+        document.getElementById('overdueGrid').innerHTML = '';
+        document.getElementById('headChart').innerHTML = '';
+        document.getElementById('tailChart').innerHTML = '';
+        document.getElementById('mlTop').innerHTML = '';
+        document.getElementById('mlBottom').innerHTML = '';
+        document.getElementById('predToday').textContent = '--';
+        document.getElementById('predTodayInfo').textContent = 'Chưa có dữ liệu';
+        document.getElementById('predTomorrow').textContent = '--';
+        document.getElementById('predTomorrowInfo').textContent = 'Chưa có dữ liệu';
+        document.getElementById('mlPred').textContent = '--';
+        return;
+    }
+    updateAnalysisContext();
+    renderFreq();
+    renderOverdue();
+    renderHeadTail();
+    renderML();
+}
 
 // Init
-renderResultTable();
-renderAnalysis();
+applyFilter();
 </script>
 </body>
 </html>
