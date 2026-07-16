@@ -47,6 +47,8 @@ jobs:
           git checkout gh-pages
           cp /tmp/readme.html .
           cp /tmp/readme.html index.html
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
           git add readme.html index.html
           if git diff --cached --quiet; then
             echo "No changes to gh-pages"
