@@ -529,13 +529,13 @@ function renderML() {{
     // Today prediction: top 6 from overdue (numbers not appeared longest)
     const overdueNums = Object.entries(ls).map(([n,i]) => [parseInt(n), i===-1?total:total-1-i]).sort((a,b)=>b[1]-a[1]);
     const todayPred = overdueNums.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
-    const todayInfo = latestDate === today ? 'Dựa trên dữ liệu mới nhất' : `Dữ liệu đến ${fmtD(latestDate)}`;
+    const todayInfo = latestDate === today ? 'Dựa trên dữ liệu mới nhất' : 'Dữ liệu đến ' + fmtD(latestDate);
     document.getElementById('predToday').textContent = todayPred;
     document.getElementById('predTodayInfo').textContent = todayInfo;
 
     // Tomorrow prediction: top 6 from combined score
     const tomorrowPred = sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
-    const tomorrowInfo = `Phân tích tần suất + độ trễ ${total} kỳ`;
+    const tomorrowInfo = 'Phân tích tần suất + độ trễ ' + total + ' kỳ';
     document.getElementById('predTomorrow').textContent = tomorrowPred;
     document.getElementById('predTomorrowInfo').textContent = tomorrowInfo;
 
