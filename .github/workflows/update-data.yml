@@ -46,3 +46,16 @@ jobs:
           git add .
           git commit -m "Updated $(date +'%Y-%m-%d')"
           git push origin main
+
+      - name: Update GitHub Pages
+        run: |
+          git checkout gh-pages
+          cp ../readme.html . 2>/dev/null || cp readme.html .
+          git add readme.html
+          if git diff --quiet; then
+            echo "No changes to gh-pages"
+          else
+            git commit -m "Update readme.html $(date +'%Y-%m-%d')"
+            git push origin gh-pages
+          fi
+          git checkout main
