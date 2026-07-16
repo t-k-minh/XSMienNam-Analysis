@@ -553,7 +553,7 @@ def generate_readme_md(lottery: XSMNLottery):
     latest_results = []
     for _, row in latest_data.iterrows():
         prov = row['province']
-        province_name = lottery._province_names.get(prov, prov)
+        province_name = PROVINCE_NAMES.get(prov, prov)
         latest_results.append({
             'province': province_name,
             'special': f"{int(row['special']):06d}",
