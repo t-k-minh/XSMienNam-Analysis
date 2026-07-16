@@ -46,11 +46,12 @@ jobs:
           cp readme.html /tmp/readme.html
           git checkout gh-pages
           cp /tmp/readme.html .
-          git add readme.html
+          cp /tmp/readme.html index.html
+          git add readme.html index.html
           if git diff --quiet; then
             echo "No changes to gh-pages"
           else
-            git commit -m "Update readme.html $(date +'%Y-%m-%d')"
+            git commit -m "Update $(date +'%Y-%m-%d')"
             git push origin gh-pages
           fi
           git checkout main
