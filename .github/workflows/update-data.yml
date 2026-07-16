@@ -25,13 +25,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --no-dev --no-install-project
 
-      - name: Fetch XSMB data
-        run: uv run src/fetch.py
-
-      - name: Analyze XSMB data and generate README.md
-        run: uv run src/analyze.py
-
-      - name: Update XSMN data and generate readme.html
+      - name: Update XSMN data and generate files
         run: uv run src/update_xsmn.py
 
       - name: Commit changes
