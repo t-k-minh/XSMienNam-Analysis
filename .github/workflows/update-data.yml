@@ -23,11 +23,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --no-dev --no-install-project
 
-      - name: Fetch data
-        run: uv run src/fetch.py
-
-      - name: Analyze data
-        run: uv run src/analyze.py
+      - name: Update XSMN data and generate HTML
+        run: uv run src/update_xsmn.py
 
       - name: Commit changes
         run: |
