@@ -531,6 +531,101 @@ renderAnalysis();
     print('Generated: readme.html')
 
 
+def generate_readme_md(lottery: XSMNLottery):
+    """Generate README.md with XSMN data in Markdown format."""
+    import json
+    from datetime import datetime
+
+    data = lottery.get_raw_data()
+    if data.empty:
+        print('No data for README.md')
+        return
+
+    # Get latest date
+    latest_date = data['date'].max()
+    latest_data = data[data['date'] == latest_date]
+
+    # Get unique dates count
+    total_dates = data['date'].nunique()
+    total_provinces = data['province'].nunique()
+
+    # Get latest results for each province
+    latest_results = []
+    for _, row in latest_data.iterrows():
+        prov = row['province']
+        province_name = lottery._province_names.get(prov, prov)
+        latest_results.append({
+            'province': province_name,
+            'special': f"{int(row['special']):06d}",
+            'prize1': f"{int(row['prize1']):05d}",
+        })
+
+    # Get frequency analysis (last 30 days)
+    from datetime import timedelta
+    recent_data = data[data['date'] >= latest_date - timedelta(days=30)]
+    all_numbers = []
+    for col in ['special', 'prize1', 'prize2', 'prize3_1', 'prize3_2',
+                'prize4_1', 'prize4_2', 'prize4_3', 'prize4_4',
+                'prize6_1', 'prize6_2', 'prize6_3']:
+        if col in recent_data.columns:
+            vals = recent_data[col].dropna()
+            all_numbers.extend([f"{int(v):02d}"[-2:] for v in vals])
+
+    from collections import Counter
+    freq = Counter(all_numbers)
+    top10 = freq.most_common(10)
+
+    # Build README.md
+    md = f"""# Xổ số Miền Nam (XSMN) Analysis
+
+> Auto-updated daily by GitHub Actions
+
+## Thống kê
+
+- **Số tỉnh thành:** {total_provinces}
+- **Số ngày quay:** {total_dates}
+- **Dữ liệu mới nhất:** {latest_date.strftime('%d/%m/%Y')}
+
+## Kết quả mới nhất ({latest_date.strftime('%d/%m/%Y')})
+
+| Tỉnh | Giải Đặc Biệt | Giải Nhất |
+|------|----------------|-----------|
+"""
+    for r in sorted(latest_results, key=lambda x: x['province']):
+        md += f"| {r['province']} | **{r['special']}** | {r['prize1']} |\n"
+
+    md += f"""
+## Top 10 số xuất hiện nhiều nhất (30 ngày gần đây)
+
+| Số | Tần suất |
+|----|----------|
+"""
+    for num, count in top10:
+        md += f"| {num} | {count} |\n"
+
+    md += f"""
+## Xem chi tiết
+
+- **Bảng tương tác:** [readme.html](readme.html) (mở trực tiếp trên trình duyệt)
+- **Dữ liệu gốc:** [data/xsmn.json](data/xsmn.json)
+
+## Tự chạy
+
+```bash
+# Cập nhật dữ liệu
+uv run src/update_xsmn.py
+
+# Với ngày cụ thể
+uv run src/update_xsmn.py --from-date 2026-01-01
+```
+
+---
+*Dữ liệu từ xoso.com.vn | Cập nhật tự động bởi GitHub Actions*
+"""
+    Path('README.md').write_text(md, encoding='utf-8')
+    print('Generated: README.md')
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Update XSMN lottery data')
@@ -554,4 +649,6 @@ if __name__ == '__main__':
     lottery = fetch_data(from_date=from_date)
     print('\n=== Generate HTML ===')
     generate_html(lottery)
+    print('\n=== Generate README.md ===')
+    generate_readme_md(lottery)
     print('Done!')
