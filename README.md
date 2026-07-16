@@ -33,7 +33,7 @@
 
 ## Xem chi tiết
 
-- **Bảng tương tác:** [readme.html](https://t-k-minh.github.io/XSMienNam-Analysis/) (xem trực tuyến)
+- **Bảng tương tác:** [readme.html](readme.html) (mở trực tiếp trên trình duyệt)
 - **Dữ liệu gốc:** [data/xsmn.json](data/xsmn.json)
 
 ## Tự chạy
