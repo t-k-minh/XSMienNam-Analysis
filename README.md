@@ -5,7 +5,7 @@
 ## Thống kê
 
 - **Số tỉnh thành:** 22
-- **Số ngày quay:** 561
+- **Số ngày quay:** 2255
 - **Dữ liệu mới nhất:** 16/07/2026
 
 ## Kết quả mới nhất (16/07/2026)
