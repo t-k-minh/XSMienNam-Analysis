@@ -252,11 +252,15 @@ function renderResultTable() {
         dayData.forEach(d => {
             const val = d[field];
             const displayVal = formatByType(val, filterType);
-            // Highlight if last 2 digits end with the filter digit
-            const last2 = String(val).slice(-2);
-            const isHighlight = filterDigit !== null && last2.endsWith(String(filterDigit));
-            const cls = (field === 'special' ? 'sp' : '') + (isHighlight ? ' num-highlight' : '');
-            bodyHtml += '<td class="' + cls + '">' + (val ? displayVal : '-') + '</td>';
+            const spCls = field === 'special' ? ' sp' : '';
+            if (filterDigit !== null && val && String(val).slice(-2).endsWith(String(filterDigit))) {
+                const full = String(val);
+                const head = full.slice(0, -2);
+                const tail = full.slice(-2);
+                bodyHtml += '<td class="' + spCls + '">' + (head ? head : '') + '<span class="num-highlight">' + tail + '</span></td>';
+            } else {
+                bodyHtml += '<td class="' + spCls + '">' + (val ? displayVal : '-') + '</td>';
+            }
         });
         bodyHtml += '</tr>';
     });
