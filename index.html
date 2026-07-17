@@ -73,7 +73,8 @@
         .filter-bar .btn-type { padding: 8px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 2px solid #e0e0e0; background: white; cursor: pointer; transition: all 0.2s; }
         .filter-bar .btn-type:hover { background: #e8f4f8; border-color: #2e86c1; }
         .filter-bar .btn-type.active { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border-color: transparent; }
-        .context-info { background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 12px; color: #1a5276; border-left: 4px solid #2e86c1; }
+        .context-info { background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: #1a5276; border-left: 4px solid #2e86c1; }
+        #todayProvinces { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
         footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 12px; }
         @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } .grid10 { grid-template-columns: repeat(5, 1fr); } .filter-row { flex-direction: column; align-items: stretch; } }
     </style>
@@ -133,6 +134,7 @@
             </div>
             <button class="btn-clear" onclick="clearHighlight()">Bỏ chọn</button>
         </div>
+        <div class="context-info" id="todayProvinces"></div>
         <div class="context-info" id="analysisContext"></div>
         <div class="tabs">
             <button class="tab active" onclick="showTab(this, 'freq')">Tần suất</button>
@@ -249,7 +251,8 @@ function renderResultTable() {
         dayData.forEach(d => {
             const val = d[field];
             const displayVal = formatByType(val, filterType);
-            const isHighlight = filterDigit !== null && displayVal.endsWith(String(filterDigit));
+            // Highlight if the last digit matches or contains the digit
+            const isHighlight = filterDigit !== null && String(val).includes(String(filterDigit));
             const cls = (field === 'special' ? 'sp' : '') + (isHighlight ? ' num-highlight' : '');
             bodyHtml += '<td class="' + cls + '">' + (val ? displayVal : '-') + '</td>';
         });
@@ -327,6 +330,7 @@ function getNumbers(data) {
 
 function renderAnalysis() {
     const ctx = document.getElementById('analysisContext');
+    const todayProv = document.getElementById('todayProvinces');
     const freq = document.getElementById('freqGrid');
     const overdue = document.getElementById('overdueGrid');
     const head = document.getElementById('headChart');
@@ -338,6 +342,15 @@ function renderAnalysis() {
     const predTomorrow = document.getElementById('predTomorrow');
     const predTomorrowInfo = document.getElementById('predTomorrowInfo');
     const mlPred = document.getElementById('mlPred');
+
+    // Show today's and tomorrow's provinces
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const todayData = DATA.filter(d => d.date === today);
+    const tomorrowData = DATA.filter(d => d.date === tomorrow);
+    const todayNames = todayData.map(d => d.province_name).join(', ') || 'Không có quay';
+    const tomorrowNames = tomorrowData.map(d => d.province_name).join(', ') || 'Không có quay';
+    todayProv.innerHTML = '<b>Hôm nay (' + fmtD(today) + '):</b> ' + todayNames + ' | <b>Ngày mai (' + fmtD(tomorrow) + '):</b> ' + tomorrowNames;
 
     if (analysisFiltered.length === 0) {
         ctx.innerHTML = 'Chọn tỉnh để bắt đầu phân tích';
