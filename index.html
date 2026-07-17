@@ -73,6 +73,7 @@
         .filter-bar .btn-type { padding: 8px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 2px solid #e0e0e0; background: white; cursor: pointer; transition: all 0.2s; }
         .filter-bar .btn-type:hover { background: #e8f4f8; border-color: #2e86c1; }
         .filter-bar .btn-type.active { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border-color: transparent; }
+        .num-highlight { background: linear-gradient(135deg, #f39c12, #e67e22) !important; color: white !important; font-weight: bold; border-radius: 4px; }
         .context-info { background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: #1a5276; border-left: 4px solid #2e86c1; }
         #todayProvinces { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
         footer { text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 12px; }
@@ -100,7 +101,7 @@
                 <tbody id="resultBody"></tbody>
             </table>
         </div>
-        <div class="filter-bar">
+        <div class="filter-bar" id="resultFilter">
             <button class="btn-type active" onclick="setFilterType('full', this)">Đầy đủ</button>
             <button class="btn-type" onclick="setFilterType('2so', this)">2 số</button>
             <button class="btn-type" onclick="setFilterType('3so', this)">3 số</button>
@@ -272,7 +273,7 @@ function setFilterType(type, el) {
 }
 
 function filterByNum(num, el) {
-    document.querySelectorAll('.filter-bar .btn-num').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
     if (filterDigit === num) { filterDigit = null; }
     else { filterDigit = num; el.classList.add('active'); }
     renderResultTable();
