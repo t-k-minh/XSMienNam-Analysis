@@ -255,9 +255,10 @@ function renderProvCard(provName, histData, provCode) {{
     // AI Prediction (FIRST)
     html += '<div class="predict-box predict-main"><div class="nums">' + predTop6(r.sorted) + '</div><small>Phân tích tần suất + độ trễ</small></div>';
 
-    // Frequency
+    // Frequency - use r.freq for counts, sort by count
     html += '<h4>Tần suất</h4><div class="grid10">';
-    r.sorted.forEach(([n,c]) => {{
+    const freqSorted = Object.entries(r.freq).sort((a,b)=>b[1]-a[1]);
+    freqSorted.forEach(([n,c]) => {{
         const p = mx>0?c/mx*100:0;
         const cls = p>80?'hot':p>60?'warm':p>40?'normal':p>20?'cool':'cold';
         html += '<div class="cell '+cls+'" title="'+c+' lần"><span class="n">'+String(n).padStart(2,'0')+'</span><span class="v">'+c+'</span></div>';
