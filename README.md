@@ -36,15 +36,5 @@
 - **Bảng tương tác:** [readme.html](https://t-k-minh.github.io/XSMienNam-Analysis/) (xem trực tuyến)
 - **Dữ liệu gốc:** [data/xsmn.json](data/xsmn.json)
 
-## Tự chạy
-
-```bash
-# Cập nhật dữ liệu
-uv run src/update_xsmn.py
-
-# Với ngày cụ thể
-uv run src/update_xsmn.py --from-date 2026-01-01
-```
-
 ---
 *Dữ liệu từ xoso.com.vn | Cập nhật tự động bởi GitHub Actions*
