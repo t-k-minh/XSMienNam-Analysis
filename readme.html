@@ -319,12 +319,9 @@ function renderAnalysis() {
 function runBacktest() {
     const resultDiv = document.getElementById('backtestResult');
     const allProvinces = [...new Set(DATA.map(d => d.province))];
-
-    // Test different training windows
-    const windows = [30, 90, 180, 365, 0]; // 0 = all data
+    const windows = [30, 90, 180, 365, 0];
     const windowLabels = ['30 ngày', '3 tháng', '6 tháng', '1 năm', 'Tất cả'];
 
-    // For each province, test predictions
     let html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
     html += '<thead><tr style="background:#1a5276;color:white">';
     html += '<th style="padding:8px;text-align:left">Tỉnh</th>';
@@ -335,25 +332,20 @@ function runBacktest() {
 
     allProvinces.forEach(prov => {
         const provData = DATA.filter(d => d.province === prov).sort((a,b) => a.date.localeCompare(b.date));
-        if (provData.length < 50) return; // Skip if not enough data
+        if (provData.length < 50) return;
 
         const provName = provData[0].province_name;
         let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provName + '</td>';
         row += '<td style="padding:8px;text-align:center">' + Math.floor(provData.length * 0.2) + '</td>';
 
-        // Random baseline: expected accuracy = 6/100 = 6% for 2-digit numbers
-        const randomAcc = (6/100*100).toFixed(1);
-
-        windows.forEach((winDays, wi) => {
-            // Test on last 20% of data
+        windows.forEach((winDays) => {
             const testSize = Math.floor(provData.length * 0.2);
             const trainEnd = provData.length - testSize;
-            let correct = 0;
+            let hits = 0;  // so ky trung it nhat 1 so
             let total = 0;
 
             for (let i = trainEnd; i < provData.length; i++) {
                 const testDate = provData[i].date;
-                // Get training data before this date
                 let trainData = provData.filter(d => d.date < testDate);
                 if (winDays > 0) {
                     const cutoff = new Date(testDate);
@@ -363,49 +355,45 @@ function runBacktest() {
                 }
                 if (trainData.length < 10) continue;
 
-                // Calculate scores and get top 6
                 const r = calcScores(trainData);
                 const predicted = new Set(r.sorted.slice(0,6).map(([n])=>parseInt(n)));
 
-                // Get actual numbers for this date
+                // Chi lay 2 so cuoi GIAI DAC BIET
                 const actual = provData[i];
-                const actualNums = new Set();
-                for (let k in actual) {
-                    if ((k.startsWith('prize') || k === 'special') && actual[k]) {
-                        const n = parseInt(String(actual[k]).slice(-2));
-                        if (!isNaN(n)) actualNums.add(n);
-                    }
-                }
+                const specialVal = actual.special;
+                if (!specialVal) continue;
+                const actualNum = parseInt(String(specialVal).slice(-2));
+                if (isNaN(actualNum)) continue;
 
-                // Count matches
-                predicted.forEach(n => { if (actualNums.has(n)) correct++; });
                 total++;
+                if (predicted.has(actualNum)) hits++;
             }
 
-            const acc = total > 0 ? (correct / total * 100).toFixed(1) : '0.0';
-            const color = parseFloat(acc) > 15 ? '#27ae60' : parseFloat(acc) > 10 ? '#f39c12' : '#e74c3c';
-            row += '<td style="padding:8px;text-align:center;font-weight:700;color:' + color + '">' + acc + '%</td>';
+            // Accuracy = so ky trung / tong so ky test
+            const acc = total > 0 ? (hits / total * 100) : 0;
+            const accStr = acc.toFixed(1);
+            const color = acc > 10 ? '#27ae60' : acc > 7 ? '#f39c12' : '#e74c3c';
+            row += '<td style="padding:8px;text-align:center;font-weight:700;color:' + color + '">' + accStr + '%</td>';
         });
 
-        row += '<td style="padding:8px;text-align:center;color:#999">' + randomAcc + '%</td>';
+        // Random baseline: 6/100 = 6%
+        row += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
         row += '</tr>';
         html += row;
     });
 
     // Summary row
     html += '<tr style="background:#f8f9fa;font-weight:700;border-top:2px solid #1a5276">';
-    html += '<td style="padding:8px" colspan="2">Trung bình tất cả tỉnh</td>';
+    html += '<td style="padding:8px" colspan="2">Trung binh tat ca tinh</td>';
 
-    windows.forEach((winDays, wi) => {
-        let totalAcc = 0;
-        let count = 0;
+    windows.forEach((winDays) => {
+        let totalHits = 0;
+        let totalCount = 0;
         allProvinces.forEach(prov => {
             const provData = DATA.filter(d => d.province === prov).sort((a,b) => a.date.localeCompare(b.date));
             if (provData.length < 50) return;
             const testSize = Math.floor(provData.length * 0.2);
             const trainEnd = provData.length - testSize;
-            let correct = 0;
-            let total = 0;
             for (let i = trainEnd; i < provData.length; i++) {
                 let trainData = provData.filter(d => d.date < provData[i].date);
                 if (winDays > 0) {
@@ -416,19 +404,15 @@ function runBacktest() {
                 if (trainData.length < 10) continue;
                 const r = calcScores(trainData);
                 const predicted = new Set(r.sorted.slice(0,6).map(([n])=>parseInt(n)));
-                const actualNums = new Set();
-                for (let k in provData[i]) {
-                    if ((k.startsWith('prize') || k === 'special') && provData[i][k]) {
-                        const n = parseInt(String(provData[i][k]).slice(-2));
-                        if (!isNaN(n)) actualNums.add(n);
-                    }
-                }
-                predicted.forEach(n => { if (actualNums.has(n)) correct++; });
-                total++;
+                const specialVal = provData[i].special;
+                if (!specialVal) continue;
+                const actualNum = parseInt(String(specialVal).slice(-2));
+                if (isNaN(actualNum)) continue;
+                totalCount++;
+                if (predicted.has(actualNum)) totalHits++;
             }
-            if (total > 0) { totalAcc += correct/total*100; count++; }
         });
-        const avg = count > 0 ? (totalAcc/count).toFixed(1) : '0.0';
+        const avg = totalCount > 0 ? (totalHits / totalCount * 100).toFixed(1) : '0.0';
         html += '<td style="padding:8px;text-align:center;color:#1a5276">' + avg + '%</td>';
     });
     html += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
@@ -436,12 +420,12 @@ function runBacktest() {
 
     html += '</tbody></table></div>';
 
-    // Legend
-    html += '<div style="margin-top:12px;font-size:11px;color:#666">';
-    html += '<p><b>Cách đọc:</b> Mỗi ô hiển thị % trúng trong top 6 dự đoán so với kết quả thực tế.</p>';
-    html += '<p><b>Ngẫu nhiên:</b> 6.0% là xác suất ngẫu nhiên chọn 6 số đúng từ 100 số (00-99).</p>';
-    html += '<p><b>Màu sắc:</b> <span style="color:#27ae60">Xanh > 15%</span> | <span style="color:#f39c12">Vàng > 10%</span> | <span style="color:#e74c3c">Đỏ ≤ 10%</span></p>';
-    html += '<p><b>Kết luận:</b> Nếu % > 6% liên tục → thuật toán cóedge so với ngẫu nhiên. Nếu % ≈ 6% → không khác ngẫu nhiên.</p>';
+    // Legend + Analysis
+    html += '<div style="margin-top:16px;padding:16px;background:#f8f9fa;border-radius:8px;font-size:12px">';
+    html += '<h4 style="color:#1a5276;margin-bottom:8px">Cach doc</h4>';
+    html += '<p><b>Phuong phap:</b> Du doan top 6 so co diem cao nhat, kiem tra so cuoi cua <b>Giai DAC BIET</b> co nam trong top 6 khong.</p>';
+    html += '<p><b>Ngau nhien:</b> 6/100 = <b>6.0%</b> la xac suat chon dung ngau nhien 6 so tu 00-99.</p>';
+    html += '<p><b>Mau sac:</b> <span style="color:#27ae60">Xanh > 10%</span> | <span style="color:#f39c12">Vang > 7%</span> | <span style="color:#e74c3c">Do <= 7%</span></p>';
     html += '</div>';
 
     resultDiv.innerHTML = html;
