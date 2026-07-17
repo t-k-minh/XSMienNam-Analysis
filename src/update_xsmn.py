@@ -49,7 +49,6 @@ def generate_html(lottery: XSMNLottery):
     df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
     df['province_name'] = df['province'].map(PROVINCE_NAMES).fillna(df['province'])
 
-    # Prepare data
     records = []
     for _, row in df.iterrows():
         rec = {'date': row['date_str'], 'province': row['province'], 'province_name': row['province_name']}
@@ -61,7 +60,6 @@ def generate_html(lottery: XSMNLottery):
 
     data_json = json.dumps(records, ensure_ascii=False)
     provinces = sorted(df['province'].unique().tolist())
-    province_json = json.dumps([{'code': p, 'name': PROVINCE_NAMES.get(p, p)} for p in provinces])
 
     html = f'''<!DOCTYPE html>
 <html lang="vi">
@@ -72,7 +70,7 @@ def generate_html(lottery: XSMNLottery):
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{ font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }}
-        .container {{ max-width: 1200px; margin: 0 auto; padding: 20px; }}
+        .container {{ max-width: 1400px; margin: 0 auto; padding: 20px; }}
         header {{ background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 30px; border-radius: 16px; margin-bottom: 20px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }}
         header h1 {{ font-size: 28px; color: #1a5276; margin-bottom: 5px; }}
         header p {{ color: #666; font-size: 14px; }}
@@ -84,41 +82,6 @@ def generate_html(lottery: XSMNLottery):
         .btn-nav {{ background: linear-gradient(135deg, #27ae60, #219a52); color: white; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.2s; }}
         .btn-nav:hover {{ transform: scale(1.05); }}
         .btn-nav:disabled {{ background: #bdc3c7; cursor: not-allowed; transform: none; }}
-        .btn-group {{ display: flex; gap: 6px; }}
-        .btn-sm {{ padding: 8px 14px; font-size: 12px; background: white; color: #555; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }}
-        .btn-sm:hover {{ background: #e8f4f8; border-color: #2e86c1; }}
-        .btn-sm.active {{ background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; border-color: transparent; }}
-        .tabs {{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }}
-        .tab {{ background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }}
-        .tab:hover {{ background: #e0e0e0; }}
-        .tab.active {{ background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; }}
-        .tab-content {{ display: none; }}
-        .tab-content.active {{ display: block; }}
-        .grid10 {{ display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }}
-        .cell {{ padding: 8px 4px; text-align: center; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }}
-        .cell:hover {{ transform: scale(1.05); }}
-        .cell .n {{ display: block; font-size: 14px; }}
-        .cell .v {{ display: block; font-size: 11px; opacity: 0.85; margin-top: 2px; }}
-        .cell.selected {{ outline: 3px solid #f39c12; outline-offset: 2px; transform: scale(1.1); z-index: 10; position: relative; }}
-        .hot {{ background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }}
-        .warm {{ background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }}
-        .normal {{ background: linear-gradient(135deg, #3498db, #2980b9); color: white; }}
-        .cool {{ background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }}
-        .cold {{ background: linear-gradient(135deg, #34495e, #2c3e50); color: white; }}
-        .bar-row {{ display: flex; align-items: center; margin-bottom: 6px; cursor: pointer; padding: 2px 0; }}
-        .bar-row:hover {{ opacity: 0.85; }}
-        .bar-label {{ width: 30px; text-align: right; margin-right: 8px; font-weight: 700; font-size: 12px; }}
-        .bar {{ height: 22px; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; color: white; font-size: 11px; font-weight: 600; min-width: 30px; }}
-        .predict-box {{ padding: 16px; border-radius: 12px; text-align: center; color: white; }}
-        .predict-box h3 {{ font-size: 13px; margin-bottom: 8px; opacity: 0.9; }}
-        .predict-box .nums {{ font-size: 22px; font-weight: 800; letter-spacing: 2px; margin: 8px 0; }}
-        .predict-box small {{ font-size: 10px; opacity: 0.8; }}
-        .predict-today {{ background: linear-gradient(135deg, #2ecc71, #27ae60); }}
-        .predict-tomorrow {{ background: linear-gradient(135deg, #9b59b6, #8e44ad); }}
-        .predict-main {{ background: linear-gradient(135deg, #e74c3c, #c0392b); }}
-        .predict-prov {{ background: linear-gradient(135deg, #3498db, #2980b9); }}
-        .two-col {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
-        .four-col {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }}
         .table-wrap {{ overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 10px; }}
         table {{ width: 100%; border-collapse: collapse; }}
         th, td {{ padding: 8px 6px; text-align: center; border: 1px solid #f0f0f0; font-size: 12px; white-space: nowrap; }}
@@ -137,13 +100,35 @@ def generate_html(lottery: XSMNLottery):
         .filter-bar .btn-clear {{ padding: 8px 14px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 2px solid #fecaca; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: auto; }}
         .filter-bar .btn-clear:hover {{ background: #fecaca; }}
         .num-highlight {{ background: linear-gradient(135deg, #f39c12, #e67e22) !important; color: white !important; font-weight: bold; border-radius: 4px; }}
-        .context-info {{ background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: #1a5276; border-left: 4px solid #2e86c1; }}
         .prov-info {{ background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; margin-bottom: 16px; padding: 12px; border-radius: 8px; font-size: 13px; }}
         .prov-info b {{ color: #0d3320; }}
-        .pred-section {{ margin-top: 16px; }}
-        .pred-section h3 {{ color: #1a5276; margin-bottom: 12px; font-size: 15px; border-bottom: 2px solid #eee; padding-bottom: 6px; }}
+        .three-col {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }}
+        .prov-card {{ background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-top: 4px solid #2e86c1; }}
+        .prov-card h3 {{ color: #1a5276; font-size: 15px; margin-bottom: 12px; text-align: center; }}
+        .prov-card h4 {{ color: #555; font-size: 12px; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eee; padding-bottom: 4px; }}
+        .predict-box {{ padding: 12px; border-radius: 8px; text-align: center; color: white; margin-bottom: 8px; }}
+        .predict-box .nums {{ font-size: 18px; font-weight: 800; letter-spacing: 1px; }}
+        .predict-box small {{ font-size: 10px; opacity: 0.85; }}
+        .predict-main {{ background: linear-gradient(135deg, #e74c3c, #c0392b); }}
+        .grid10 {{ display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; }}
+        .cell {{ padding: 4px 2px; text-align: center; border-radius: 4px; font-weight: 600; font-size: 10px; cursor: pointer; transition: all 0.15s; }}
+        .cell:hover {{ transform: scale(1.08); }}
+        .cell .n {{ display: block; font-size: 11px; }}
+        .cell .v {{ display: block; font-size: 9px; opacity: 0.85; }}
+        .cell.selected {{ outline: 2px solid #f39c12; outline-offset: 1px; transform: scale(1.1); z-index: 10; position: relative; }}
+        .hot {{ background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; }}
+        .warm {{ background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }}
+        .normal {{ background: linear-gradient(135deg, #3498db, #2980b9); color: white; }}
+        .cool {{ background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; }}
+        .cold {{ background: linear-gradient(135deg, #34495e, #2c3e50); color: white; }}
+        .bar-row {{ display: flex; align-items: center; margin-bottom: 3px; cursor: pointer; }}
+        .bar-row:hover {{ opacity: 0.85; }}
+        .bar-label {{ width: 20px; text-align: right; margin-right: 4px; font-weight: 700; font-size: 10px; }}
+        .bar {{ height: 14px; border-radius: 3px; display: flex; align-items: center; padding-left: 4px; color: white; font-size: 9px; font-weight: 600; min-width: 16px; }}
+        .headtail-wrap {{ display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }}
         footer {{ text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 12px; }}
-        @media (max-width: 768px) {{ .two-col {{ grid-template-columns: 1fr; }} .four-col {{ grid-template-columns: 1fr 1fr; }} .grid10 {{ grid-template-columns: repeat(5, 1fr); }} }}
+        @media (max-width: 1024px) {{ .three-col {{ grid-template-columns: 1fr; }} }}
+        @media (max-width: 768px) {{ .grid10 {{ grid-template-columns: repeat(5, 1fr); }} }}
     </style>
 </head>
 <body>
@@ -153,7 +138,6 @@ def generate_html(lottery: XSMNLottery):
         <p>{len(provinces)} tỉnh thành | {len(records)} kết quả</p>
     </header>
 
-    <!-- SECTION 1: Kết quả xổ số -->
     <div class="card">
         <h2>Kết quả xổ số</h2>
         <div class="date-nav">
@@ -186,7 +170,6 @@ def generate_html(lottery: XSMNLottery):
         </div>
     </div>
 
-    <!-- SECTION 2: Phân tích dự đoán THEO NGÀY -->
     <div class="card">
         <h2>Phân tích dự đoán</h2>
         <div class="date-nav">
@@ -195,45 +178,12 @@ def generate_html(lottery: XSMNLottery):
             <button class="btn-nav" onclick="nextAnalysisDay()">&#9654;</button>
         </div>
         <div class="prov-info" id="todayProvinces"></div>
-        <div class="context-info" id="analysisContext"></div>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab(this, 'freq')">Tần suất</button>
-            <button class="tab" onclick="showTab(this, 'overdue')">Lâu chưa ra</button>
-            <button class="tab" onclick="showTab(this, 'headtail')">Đầu-Đuôi</button>
-            <button class="tab" onclick="showTab(this, 'ml')">AI Dự đoán</button>
-        </div>
+        <!-- HÔM NAY -->
+        <div id="predTodaySection"></div>
 
-        <div id="tab-freq" class="tab-content active">
-            <div class="grid10" id="freqGrid"></div>
-        </div>
-        <div id="tab-overdue" class="tab-content">
-            <div class="grid10" id="overdueGrid"></div>
-        </div>
-        <div id="tab-headtail" class="tab-content">
-            <div class="two-col">
-                <div><h3 style="margin-bottom:10px;color:#1a5276">Đầu (chục)</h3><div id="headChart"></div></div>
-                <div><h3 style="margin-bottom:10px;color:#1a5276">Đuôi (đơn vị)</h3><div id="tailChart"></div></div>
-            </div>
-        </div>
-        <div id="tab-ml" class="tab-content">
-            <div class="two-col">
-                <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số cao</h3><div id="mlTop"></div></div>
-                <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số thấp</h3><div id="mlBottom"></div></div>
-            </div>
-
-            <!-- Predictions for TODAY -->
-            <div class="pred-section">
-                <h3>Dự đoán hôm nay</h3>
-                <div class="four-col" id="predTodayGrid"></div>
-            </div>
-
-            <!-- Predictions for TOMORROW -->
-            <div class="pred-section">
-                <h3>Dự đoán ngày mai</h3>
-                <div class="four-col" id="predTomorrowGrid"></div>
-            </div>
-        </div>
+        <!-- NGÀY MAI -->
+        <div id="predTomorrowSection" style="margin-top:20px"></div>
     </div>
 
     <footer>Dữ liệu từ xoso.com.vn | Cập nhật tự động bởi GitHub Actions</footer>
@@ -241,10 +191,8 @@ def generate_html(lottery: XSMNLottery):
 
 <script>
 const DATA = {data_json};
-const PROVINCES = {province_json};
 const ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
 
-// ===== SHARED STATE =====
 let resultDateIdx = ALL_DATES.length - 1;
 let analysisDateIdx = ALL_DATES.length - 1;
 let filterType = 'full';
@@ -252,7 +200,6 @@ let filterDigit = null;
 let selectedNum = null;
 
 function fmtD(s) {{ const [y,m,d] = s.split('-'); return d+'/'+m+'/'+y; }}
-
 function formatByType(val, type) {{
     if (!val && val !== 0) return '-';
     const s = String(val);
@@ -260,22 +207,19 @@ function formatByType(val, type) {{
     if (type === '3so') return s.slice(-3);
     return s;
 }}
-
 function getNumbers(data) {{
     const nums = [];
     data.forEach(d => {{ for (let k in d) {{
         if (k.startsWith('prize') || k === 'special') {{
             const v = d[k];
             if (v !== null && v !== undefined && v !== 0 && v !== '') {{
-                const s = String(v);
-                const last2 = parseInt(s.slice(-2));
+                const last2 = parseInt(String(v).slice(-2));
                 if (!isNaN(last2)) nums.push(last2);
             }}
         }}
     }} }});
     return nums;
 }}
-
 function calcScores(data) {{
     const nums = getNumbers(data);
     const dates = [...new Set(data.map(d => d.date))].sort();
@@ -291,11 +235,59 @@ function calcScores(data) {{
     }}
     const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
     const overdue = Object.entries(ls).map(([n,i]) => [parseInt(n), i===-1?data.length:data.length-1-i]).sort((a,b)=>b[1]-a[1]);
-    return {{ nums, total, freq, ls, sorted, overdue }};
+    const hc = {{}}, tc = {{}}; for(let i=0;i<10;i++) {{hc[i]=0;tc[i]=0;}}
+    nums.forEach(n => {{ hc[Math.floor(n/10)]++; tc[n%10]++; }});
+    return {{ nums, total, freq, ls, sorted, overdue, hc, tc }};
 }}
+function predTop6(sorted) {{ return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - '); }}
 
-function getPredTop6(sorted) {{
-    return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
+function renderProvCard(provName, histData, provCode) {{
+    const r = calcScores(histData);
+    const mx = Math.max(...Object.values(r.freq));
+    const mxOd = Math.max(...r.overdue.map(x=>x[1]));
+    const mxS = r.sorted[0][1];
+    const mxH = Math.max(...Object.values(r.hc));
+    const mxT = Math.max(...Object.values(r.tc));
+
+    let html = '<div class="prov-card"><h3>' + provName + ' (' + r.total + ' kỳ)</h3>';
+
+    // AI Prediction (FIRST)
+    html += '<div class="predict-box predict-main"><div class="nums">' + predTop6(r.sorted) + '</div><small>Phân tích tần suất + độ trễ</small></div>';
+
+    // Frequency
+    html += '<h4>Tần suất</h4><div class="grid10">';
+    r.sorted.forEach(([n,c]) => {{
+        const p = mx>0?c/mx*100:0;
+        const cls = p>80?'hot':p>60?'warm':p>40?'normal':p>20?'cool':'cold';
+        html += '<div class="cell '+cls+'" title="'+c+' lần"><span class="n">'+String(n).padStart(2,'0')+'</span><span class="v">'+c+'</span></div>';
+    }});
+    html += '</div>';
+
+    // Overdue
+    html += '<h4>Lâu chưa ra</h4><div class="grid10">';
+    r.overdue.forEach(([n,d]) => {{
+        const p = mxOd>0?d/mxOd*100:0;
+        const cls = p>80?'hot':p>60?'warm':p>30?'normal':'cool';
+        html += '<div class="cell '+cls+'" title="'+d+' ngày"><span class="n">'+String(n).padStart(2,'0')+'</span><span class="v">'+d+'d</span></div>';
+    }});
+    html += '</div>';
+
+    // Head-Tail
+    html += '<h4>Đầu-Đuôi</h4><div class="headtail-wrap">';
+    html += '<div>';
+    Object.entries(r.hc).sort((a,b)=>b[1]-a[1]).forEach(([h,c]) => {{
+        const p = mxH>0?c/mxH*100:0;
+        html += '<div class="bar-row"><div class="bar-label">'+h+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
+    }});
+    html += '</div><div>';
+    Object.entries(r.tc).sort((a,b)=>b[1]-a[1]).forEach(([t,c]) => {{
+        const p = mxT>0?c/mxT*100:0;
+        html += '<div class="bar-row"><div class="bar-label">'+t+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
+    }});
+    html += '</div></div>';
+
+    html += '</div>';
+    return html;
 }}
 
 // ===== RESULT SECTION =====
@@ -304,72 +296,36 @@ function renderResultTable() {{
     document.getElementById('resultDate').textContent = fmtD(date);
     document.getElementById('btnPrev').disabled = resultDateIdx === 0;
     document.getElementById('btnNext').disabled = resultDateIdx === ALL_DATES.length - 1;
-
     const dayData = DATA.filter(d => d.date === date);
     if (dayData.length === 0) return;
-
     let headerHtml = '<tr><th>Giải</th>';
     dayData.forEach(d => {{ headerHtml += '<th>' + d.province_name + '</th>'; }});
     headerHtml += '</tr>';
     document.getElementById('resultHead').innerHTML = headerHtml;
-
-    const prizeRows = [
-        ['Tám', 'prize8'], ['Bảy', 'prize7'],
-        ['Sáu 1', 'prize6_1'], ['Sáu 2', 'prize6_2'], ['Sáu 3', 'prize6_3'],
-        ['Năm', 'prize5'],
-        ['Tư 1', 'prize4_1'], ['Tư 2', 'prize4_2'], ['Tư 3', 'prize4_3'], ['Tư 4', 'prize4_4'],
-        ['Ba 1', 'prize3_1'], ['Ba 2', 'prize3_2'],
-        ['Nhì', 'prize2'], ['Nhất', 'prize1'], ['Đặc biệt', 'special'],
-    ];
-
+    const prizeRows = [['Tám','prize8'],['Bảy','prize7'],['Sáu 1','prize6_1'],['Sáu 2','prize6_2'],['Sáu 3','prize6_3'],['Năm','prize5'],['Tư 1','prize4_1'],['Tư 2','prize4_2'],['Tư 3','prize4_3'],['Tư 4','prize4_4'],['Ba 1','prize3_1'],['Ba 2','prize3_2'],['Nhì','prize2'],['Nhất','prize1'],['Đặc biệt','special']];
     let bodyHtml = '';
     prizeRows.forEach(([label, field]) => {{
         bodyHtml += '<tr><td style="font-weight:600;color:#555">' + label + '</td>';
         dayData.forEach(d => {{
             const val = d[field];
-            const displayVal = formatByType(val, filterType);
-            const spCls = field === 'special' ? ' sp' : '';
+            const dv = formatByType(val, filterType);
+            const sp = field === 'special' ? ' sp' : '';
             if (filterDigit !== null && val && String(val).slice(-2).endsWith(String(filterDigit))) {{
-                const full = String(val);
-                bodyHtml += '<td class="' + spCls + '">' + full.slice(0, -2) + '<span class="num-highlight">' + full.slice(-2) + '</span></td>';
+                const f = String(val);
+                bodyHtml += '<td class="'+sp+'">'+f.slice(0,-2)+'<span class="num-highlight">'+f.slice(-2)+'</span></td>';
             }} else {{
-                bodyHtml += '<td class="' + spCls + '">' + (val ? displayVal : '-') + '</td>';
+                bodyHtml += '<td class="'+sp+'">'+(val?dv:'-')+'</td>';
             }}
         }});
         bodyHtml += '</tr>';
     }});
     document.getElementById('resultBody').innerHTML = bodyHtml;
 }}
-
 function prevResultDay() {{ if (resultDateIdx > 0) {{ resultDateIdx--; renderResultTable(); }} }}
 function nextResultDay() {{ if (resultDateIdx < ALL_DATES.length - 1) {{ resultDateIdx++; renderResultTable(); }} }}
-
-function setFilterType(type, el) {{
-    document.querySelectorAll('#resultFilter .btn-type').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    filterType = type;
-    renderResultTable();
-}}
-
-function filterByNum(num, el) {{
-    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
-    if (filterDigit === num) {{ filterDigit = null; }}
-    else {{ filterDigit = num; el.classList.add('active'); }}
-    renderResultTable();
-}}
-
-function clearHighlight() {{
-    selectedNum = null;
-    filterDigit = null;
-    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
-    renderResultTable();
-    renderAnalysis();
-}}
-
-function selectNumber(num) {{
-    selectedNum = selectedNum === num ? null : num;
-    renderAnalysis();
-}}
+function setFilterType(type, el) {{ document.querySelectorAll('#resultFilter .btn-type').forEach(b => b.classList.remove('active')); el.classList.add('active'); filterType = type; renderResultTable(); }}
+function filterByNum(num, el) {{ document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); if (filterDigit === num) {{ filterDigit = null; }} else {{ filterDigit = num; el.classList.add('active'); }} renderResultTable(); }}
+function clearHighlight() {{ selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }}
 
 // ===== ANALYSIS SECTION =====
 function prevAnalysisDay() {{ if (analysisDateIdx > 0) {{ analysisDateIdx--; renderAnalysis(); }} }}
@@ -379,113 +335,36 @@ function renderAnalysis() {{
     const date = ALL_DATES[analysisDateIdx];
     document.getElementById('analysisDate').textContent = fmtD(date);
 
-    // Show provinces for this date and next day
     const dayData = DATA.filter(d => d.date === date);
-    const nextDate = analysisDateIdx < ALL_DATES.length - 1 ? ALL_DATES[analysisDateIdx + 1] : null;
+    const nextIdx = analysisDateIdx < ALL_DATES.length - 1 ? analysisDateIdx + 1 : -1;
+    const nextDate = nextIdx >= 0 ? ALL_DATES[nextIdx] : null;
     const nextData = nextDate ? DATA.filter(d => d.date === nextDate) : [];
+
     const todayNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
     const tomorrowNames = nextData.map(d => d.province_name).join(', ') || 'Không có';
     document.getElementById('todayProvinces').innerHTML = '<b>Hôm nay (' + fmtD(date) + '):</b> ' + todayNames + '&nbsp;&nbsp;|&nbsp;&nbsp;<b>Ngày mai' + (nextDate ? ' (' + fmtD(nextDate) + ')' : '') + ':</b> ' + tomorrowNames;
 
-    // Use all data for analysis (historical)
-    const allProvCodes = [...new Set(dayData.map(d => d.province))];
-    const ctx = document.getElementById('analysisContext');
-    ctx.innerHTML = 'Phân tích dựa trên lịch sử <b>' + allProvCodes.length + '</b> đài | <b>' + DATA.length + '</b> kết quả';
-
-    // Render freq/overdue/headtail using ALL data for these provinces
-    const histData = DATA.filter(d => allProvCodes.includes(d.province));
-    const result = calcScores(histData);
-
-    // Freq
-    const freqGrid = document.getElementById('freqGrid');
-    const mx = Math.max(...Object.values(result.freq));
-    freqGrid.innerHTML = Object.entries(result.freq).sort((a,b)=>b[1]-a[1]).map(([n,c]) => {{
-        const p = mx>0 ? c/mx*100 : 0;
-        const cls = p>80?'hot':p>60?'warm':p>40?'normal':p>20?'cool':'cold';
-        const sel = selectedNum === parseInt(n) ? ' selected' : '';
-        return '<div class="cell '+cls+sel+'" onclick="selectNumber('+n+')" title="'+c+' lần"><span class="n">'+String(n).padStart(2,'0')+'</span><span class="v">'+c+'</span></div>';
-    }}).join('');
-
-    // Overdue
-    const overdueGrid = document.getElementById('overdueGrid');
-    const mxOd = Math.max(...result.overdue.map(x=>x[1]));
-    overdueGrid.innerHTML = result.overdue.map(([n,d]) => {{
-        const p = mxOd>0 ? d/mxOd*100 : 0;
-        const cls = p>80?'hot':p>60?'warm':p>30?'normal':'cool';
-        const sel = selectedNum === n ? ' selected' : '';
-        return '<div class="cell '+cls+sel+'" onclick="selectNumber('+n+')" title="'+d+' ngày"><span class="n">'+String(n).padStart(2,'0')+'</span><span class="v">'+d+'d</span></div>';
-    }}).join('');
-
-    // Head-Tail
-    const hc = {{}}, tc = {{}}; for(let i=0;i<10;i++) {{hc[i]=0;tc[i]=0;}}
-    result.nums.forEach(n => {{ hc[Math.floor(n/10)]++; tc[n%10]++; }});
-    const mxH = Math.max(...Object.values(hc)), mxT = Math.max(...Object.values(tc));
-    document.getElementById('headChart').innerHTML = Object.entries(hc).sort((a,b)=>b[1]-a[1]).map(([h,c]) => {{
-        const p = mxH>0?c/mxH*100:0;
-        return '<div class="bar-row"><div class="bar-label">'+h+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
-    }}).join('');
-    document.getElementById('tailChart').innerHTML = Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,c]) => {{
-        const p = mxT>0?c/mxT*100:0;
-        return '<div class="bar-row"><div class="bar-label">'+t+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
-    }}).join('');
-
-    // ML Top/Bottom
-    const mxS = result.sorted[0][1];
-    document.getElementById('mlTop').innerHTML = result.sorted.slice(0,20).map(([n,s]) => {{
-        const p = s/mxS*100;
-        const sel = selectedNum === parseInt(n) ? ' style="outline:2px solid #f39c12"' : '';
-        return '<div class="bar-row"'+sel+' onclick="selectNumber('+n+')"><div class="bar-label">'+n+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(120-p)+',70%,45%)">'+(s*100).toFixed(1)+'%</div></div>';
-    }}).join('');
-    document.getElementById('mlBottom').innerHTML = result.sorted.slice(-20).reverse().map(([n,s]) => {{
-        const p = s/mxS*100;
-        const sel = selectedNum === parseInt(n) ? ' style="outline:2px solid #f39c12"' : '';
-        return '<div class="bar-row"'+sel+' onclick="selectNumber('+n+')"><div class="bar-label">'+n+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(240-p)+',50%,60%)">'+(s*100).toFixed(1)+'%</div></div>';
-    }}).join('');
-
-    // ===== TODAY PREDICTIONS =====
-    let todayHtml = '';
-    // Combined (all 3 provinces)
-    const combinedSorted = result.sorted;
-    const combinedPred = getPredTop6(combinedSorted);
-    todayHtml += '<div class="predict-box predict-main"><h3>Tổng hợp 3 đài</h3><div class="nums">' + combinedPred + '</div><small>' + allProvCodes.length + ' đài gộp lại</small></div>';
-
-    // Per-province predictions
+    // TODAY: 3 columns
+    let todayHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán hôm nay (' + fmtD(date) + ')</h3><div class="three-col">';
     dayData.forEach(d => {{
-        const provHist = DATA.filter(x => x.province === d.province);
-        const provResult = calcScores(provHist);
-        const provPred = getPredTop6(provResult.sorted);
-        todayHtml += '<div class="predict-box predict-prov"><h3>' + d.province_name + '</h3><div class="nums">' + provPred + '</div><small>Lịch sử ' + provHist.length + ' kết quả</small></div>';
+        const histData = DATA.filter(x => x.province === d.province);
+        todayHtml += renderProvCard(d.province_name, histData, d.province);
     }});
-    document.getElementById('predTodayGrid').innerHTML = todayHtml;
+    todayHtml += '</div>';
+    document.getElementById('predTodaySection').innerHTML = todayHtml;
 
-    // ===== TOMORROW PREDICTIONS =====
-    let tomorrowHtml = '';
+    // TOMORROW: 3 columns
+    let tomorrowHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán ngày mai' + (nextDate ? ' (' + fmtD(nextDate) + ')' : '') + '</h3><div class="three-col">';
     if (nextData.length > 0) {{
-        // Combined for tomorrow's provinces
-        const tomorrowCodes = [...new Set(nextData.map(d => d.province))];
-        const tomorrowHist = DATA.filter(d => tomorrowCodes.includes(d.province));
-        const tomorrowResult = calcScores(tomorrowHist);
-        const tomorrowPred = getPredTop6(tomorrowResult.sorted);
-        tomorrowHtml += '<div class="predict-box predict-tomorrow"><h3>Tổng hợp 3 đài</h3><div class="nums">' + tomorrowPred + '</div><small>' + tomorrowCodes.length + ' đài gộp lại</small></div>';
-
-        // Per-province predictions for tomorrow
         nextData.forEach(d => {{
-            const provHist = DATA.filter(x => x.province === d.province);
-            const provResult = calcScores(provHist);
-            const provPred = getPredTop6(provResult.sorted);
-            tomorrowHtml += '<div class="predict-box predict-prov"><h3>' + d.province_name + '</h3><div class="nums">' + provPred + '</div><small>Lịch sử ' + provHist.length + ' kết quả</small></div>';
+            const histData = DATA.filter(x => x.province === d.province);
+            tomorrowHtml += renderProvCard(d.province_name, histData, d.province);
         }});
     }} else {{
-        tomorrowHtml = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#999">Chưa có dữ liệu ngày mai</div>';
+        tomorrowHtml += '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#999">Chưa có dữ liệu ngày mai</div>';
     }}
-    document.getElementById('predTomorrowGrid').innerHTML = tomorrowHtml;
-}}
-
-function showTab(el, id) {{
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('tab-'+id).classList.add('active');
+    tomorrowHtml += '</div>';
+    document.getElementById('predTomorrowSection').innerHTML = tomorrowHtml;
 }}
 
 // Init
@@ -568,16 +447,6 @@ def generate_readme_md(lottery: XSMNLottery):
 
 - **Bảng tương tác:** [readme.html](https://t-k-minh.github.io/XSMienNam-Analysis/) (xem trực tuyến)
 - **Dữ liệu gốc:** [data/xsmn.json](data/xsmn.json)
-
-## Tự chạy
-
-```bash
-# Cập nhật dữ liệu
-uv run src/update_xsmn.py
-
-# Với ngày cụ thể
-uv run src/update_xsmn.py --from-date 2026-01-01
-```
 
 ---
 *Dữ liệu từ xoso.com.vn | Cập nhật tự động bởi GitHub Actions*
