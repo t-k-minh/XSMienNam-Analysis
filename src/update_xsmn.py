@@ -181,6 +181,7 @@ def generate_html(lottery: XSMNLottery):
             <button class="btn-num" onclick="filterByNum(7, this)">7</button>
             <button class="btn-num" onclick="filterByNum(8, this)">8</button>
             <button class="btn-num" onclick="filterByNum(9, this)">9</button>
+            <button class="btn-clear" onclick="clearHighlight()" style="margin-left:auto">Bỏ chọn</button>
         </div>
     </div>
 
@@ -198,7 +199,6 @@ def generate_html(lottery: XSMNLottery):
                 <button class="btn-sm" onclick="quickFilter(365, this)">1 năm</button>
                 <button class="btn-sm active" onclick="quickFilter(0, this)">Tất cả</button>
             </div>
-            <button class="btn-clear" onclick="clearHighlight()">Bỏ chọn</button>
         </div>
         <div class="context-info" id="todayProvinces"></div>
         <div class="context-info" id="analysisContext"></div>
@@ -317,8 +317,9 @@ function renderResultTable() {{
         dayData.forEach(d => {{
             const val = d[field];
             const displayVal = formatByType(val, filterType);
-            // Highlight if the last digit matches or contains the digit
-            const isHighlight = filterDigit !== null && String(val).includes(String(filterDigit));
+            // Highlight if last 2 digits end with the filter digit
+            const last2 = String(val).slice(-2);
+            const isHighlight = filterDigit !== null && last2.endsWith(String(filterDigit));
             const cls = (field === 'special' ? 'sp' : '') + (isHighlight ? ' num-highlight' : '');
             bodyHtml += '<td class="' + cls + '">' + (val ? displayVal : '-') + '</td>';
         }});
