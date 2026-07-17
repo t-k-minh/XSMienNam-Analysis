@@ -84,16 +84,10 @@ def generate_html(lottery: XSMNLottery):
         .btn-nav {{ background: linear-gradient(135deg, #27ae60, #219a52); color: white; border: none; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.2s; }}
         .btn-nav:hover {{ transform: scale(1.05); }}
         .btn-nav:disabled {{ background: #bdc3c7; cursor: not-allowed; transform: none; }}
-        .filter-row {{ display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding: 12px; background: #f8f9fa; border-radius: 10px; }}
-        .filter-row label {{ font-weight: 600; font-size: 13px; color: #555; white-space: nowrap; }}
-        .filter-row select {{ padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; background: white; min-width: 180px; }}
-        .filter-row select:focus {{ border-color: #2e86c1; outline: none; }}
         .btn-group {{ display: flex; gap: 6px; }}
         .btn-sm {{ padding: 8px 14px; font-size: 12px; background: white; color: #555; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }}
         .btn-sm:hover {{ background: #e8f4f8; border-color: #2e86c1; }}
         .btn-sm.active {{ background: linear-gradient(135deg, #2e86c1, #1a5276); color: white; border-color: transparent; }}
-        .btn-clear {{ padding: 8px 14px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 2px solid #fecaca; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: auto; }}
-        .btn-clear:hover {{ background: #fecaca; }}
         .tabs {{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }}
         .tab {{ background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }}
         .tab:hover {{ background: #e0e0e0; }}
@@ -115,14 +109,16 @@ def generate_html(lottery: XSMNLottery):
         .bar-row:hover {{ opacity: 0.85; }}
         .bar-label {{ width: 30px; text-align: right; margin-right: 8px; font-weight: 700; font-size: 12px; }}
         .bar {{ height: 22px; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; color: white; font-size: 11px; font-weight: 600; min-width: 30px; }}
-        .predict-box {{ padding: 20px; border-radius: 12px; text-align: center; color: white; }}
-        .predict-box h3 {{ font-size: 14px; margin-bottom: 10px; opacity: 0.9; }}
-        .predict-box .nums {{ font-size: 28px; font-weight: 800; letter-spacing: 2px; margin: 12px 0; }}
-        .predict-box small {{ font-size: 11px; opacity: 0.8; }}
+        .predict-box {{ padding: 16px; border-radius: 12px; text-align: center; color: white; }}
+        .predict-box h3 {{ font-size: 13px; margin-bottom: 8px; opacity: 0.9; }}
+        .predict-box .nums {{ font-size: 22px; font-weight: 800; letter-spacing: 2px; margin: 8px 0; }}
+        .predict-box small {{ font-size: 10px; opacity: 0.8; }}
         .predict-today {{ background: linear-gradient(135deg, #2ecc71, #27ae60); }}
         .predict-tomorrow {{ background: linear-gradient(135deg, #9b59b6, #8e44ad); }}
         .predict-main {{ background: linear-gradient(135deg, #e74c3c, #c0392b); }}
+        .predict-prov {{ background: linear-gradient(135deg, #3498db, #2980b9); }}
         .two-col {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
+        .four-col {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }}
         .table-wrap {{ overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 10px; }}
         table {{ width: 100%; border-collapse: collapse; }}
         th, td {{ padding: 8px 6px; text-align: center; border: 1px solid #f0f0f0; font-size: 12px; white-space: nowrap; }}
@@ -138,11 +134,16 @@ def generate_html(lottery: XSMNLottery):
         .filter-bar .btn-type {{ padding: 8px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; border: 2px solid #e0e0e0; background: white; cursor: pointer; transition: all 0.2s; }}
         .filter-bar .btn-type:hover {{ background: #e8f4f8; border-color: #2e86c1; }}
         .filter-bar .btn-type.active {{ background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border-color: transparent; }}
+        .filter-bar .btn-clear {{ padding: 8px 14px; font-size: 12px; background: #fee2e2; color: #dc2626; border: 2px solid #fecaca; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: auto; }}
+        .filter-bar .btn-clear:hover {{ background: #fecaca; }}
         .num-highlight {{ background: linear-gradient(135deg, #f39c12, #e67e22) !important; color: white !important; font-weight: bold; border-radius: 4px; }}
         .context-info {{ background: #e8f4f8; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: #1a5276; border-left: 4px solid #2e86c1; }}
-        #todayProvinces {{ background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }}
+        .prov-info {{ background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; margin-bottom: 16px; padding: 12px; border-radius: 8px; font-size: 13px; }}
+        .prov-info b {{ color: #0d3320; }}
+        .pred-section {{ margin-top: 16px; }}
+        .pred-section h3 {{ color: #1a5276; margin-bottom: 12px; font-size: 15px; border-bottom: 2px solid #eee; padding-bottom: 6px; }}
         footer {{ text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 12px; }}
-        @media (max-width: 768px) {{ .two-col {{ grid-template-columns: 1fr; }} .grid10 {{ grid-template-columns: repeat(5, 1fr); }} .filter-row {{ flex-direction: column; align-items: stretch; }} }}
+        @media (max-width: 768px) {{ .two-col {{ grid-template-columns: 1fr; }} .four-col {{ grid-template-columns: 1fr 1fr; }} .grid10 {{ grid-template-columns: repeat(5, 1fr); }} }}
     </style>
 </head>
 <body>
@@ -152,9 +153,9 @@ def generate_html(lottery: XSMNLottery):
         <p>{len(provinces)} tỉnh thành | {len(records)} kết quả</p>
     </header>
 
-    <!-- SECTION 1: Kết quả xổ số - ĐỘC LẬP -->
+    <!-- SECTION 1: Kết quả xổ số -->
     <div class="card">
-        <h2>Kết quả xổ số hôm nay</h2>
+        <h2>Kết quả xổ số</h2>
         <div class="date-nav">
             <button class="btn-nav" id="btnPrev" onclick="prevResultDay()">&#9664;</button>
             <div class="date" id="resultDate"></div>
@@ -181,33 +182,28 @@ def generate_html(lottery: XSMNLottery):
             <button class="btn-num" onclick="filterByNum(7, this)">7</button>
             <button class="btn-num" onclick="filterByNum(8, this)">8</button>
             <button class="btn-num" onclick="filterByNum(9, this)">9</button>
-            <button class="btn-clear" onclick="clearHighlight()" style="margin-left:auto">Bỏ chọn</button>
+            <button class="btn-clear" onclick="clearHighlight()">Bỏ chọn</button>
         </div>
     </div>
 
-    <!-- SECTION 2: Phân tích dự đoán - CÓ BỘ LỌC TỈNH -->
+    <!-- SECTION 2: Phân tích dự đoán THEO NGÀY -->
     <div class="card">
         <h2>Phân tích dự đoán</h2>
-        <div class="filter-row">
-            <label>Tỉnh:</label>
-            <select id="selProvince" onchange="applyAnalysis()"></select>
-            <label>Khoảng:</label>
-            <div class="btn-group">
-                <button class="btn-sm" onclick="quickFilter(30, this)">30 ngày</button>
-                <button class="btn-sm" onclick="quickFilter(90, this)">3 tháng</button>
-                <button class="btn-sm" onclick="quickFilter(180, this)">6 tháng</button>
-                <button class="btn-sm" onclick="quickFilter(365, this)">1 năm</button>
-                <button class="btn-sm active" onclick="quickFilter(0, this)">Tất cả</button>
-            </div>
+        <div class="date-nav">
+            <button class="btn-nav" onclick="prevAnalysisDay()">&#9664;</button>
+            <div class="date" id="analysisDate"></div>
+            <button class="btn-nav" onclick="nextAnalysisDay()">&#9654;</button>
         </div>
-        <div class="context-info" id="todayProvinces"></div>
+        <div class="prov-info" id="todayProvinces"></div>
         <div class="context-info" id="analysisContext"></div>
+
         <div class="tabs">
             <button class="tab active" onclick="showTab(this, 'freq')">Tần suất</button>
             <button class="tab" onclick="showTab(this, 'overdue')">Lâu chưa ra</button>
             <button class="tab" onclick="showTab(this, 'headtail')">Đầu-Đuôi</button>
             <button class="tab" onclick="showTab(this, 'ml')">AI Dự đoán</button>
         </div>
+
         <div id="tab-freq" class="tab-content active">
             <div class="grid10" id="freqGrid"></div>
         </div>
@@ -225,22 +221,17 @@ def generate_html(lottery: XSMNLottery):
                 <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số cao</h3><div id="mlTop"></div></div>
                 <div><h3 style="margin-bottom:10px;color:#1a5276">Top 20 số thấp</h3><div id="mlBottom"></div></div>
             </div>
-            <div class="two-col" style="margin-top:15px">
-                <div class="predict-box predict-today">
-                    <h3>Hôm nay</h3>
-                    <div class="nums" id="predToday"></div>
-                    <small id="predTodayInfo"></small>
-                </div>
-                <div class="predict-box predict-tomorrow">
-                    <h3>Ngày mai</h3>
-                    <div class="nums" id="predTomorrow"></div>
-                    <small id="predTomorrowInfo"></small>
-                </div>
+
+            <!-- Predictions for TODAY -->
+            <div class="pred-section">
+                <h3>Dự đoán hôm nay</h3>
+                <div class="four-col" id="predTodayGrid"></div>
             </div>
-            <div class="predict-box predict-main" style="margin-top:15px">
-                <h3>Gợi ý con số may mắn</h3>
-                <div class="nums" id="mlPred"></div>
-                <small>Dựa trên phân tích tần suất + độ trễ</small>
+
+            <!-- Predictions for TOMORROW -->
+            <div class="pred-section">
+                <h3>Dự đoán ngày mai</h3>
+                <div class="four-col" id="predTomorrowGrid"></div>
             </div>
         </div>
     </div>
@@ -253,22 +244,12 @@ const DATA = {data_json};
 const PROVINCES = {province_json};
 const ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
 
-// ===== RESULT SECTION (independent) =====
+// ===== SHARED STATE =====
 let resultDateIdx = ALL_DATES.length - 1;
+let analysisDateIdx = ALL_DATES.length - 1;
 let filterType = 'full';
 let filterDigit = null;
 let selectedNum = null;
-
-// ===== ANALYSIS SECTION =====
-let analysisProvince = '';
-let analysisDays = 0;
-let analysisFiltered = [];
-
-// Init province select
-const sel = document.getElementById('selProvince');
-PROVINCES.forEach(p => {{ const o = document.createElement('option'); o.value = p.code; o.textContent = p.name; sel.appendChild(o); }});
-sel.value = PROVINCES[0].code;
-analysisProvince = PROVINCES[0].code;
 
 function fmtD(s) {{ const [y,m,d] = s.split('-'); return d+'/'+m+'/'+y; }}
 
@@ -278,110 +259,6 @@ function formatByType(val, type) {{
     if (type === '2so') return s.slice(-2);
     if (type === '3so') return s.slice(-3);
     return s;
-}}
-
-// ===== RESULT FUNCTIONS =====
-function renderResultTable() {{
-    const date = ALL_DATES[resultDateIdx];
-    document.getElementById('resultDate').textContent = fmtD(date);
-    document.getElementById('btnPrev').disabled = resultDateIdx === 0;
-    document.getElementById('btnNext').disabled = resultDateIdx === ALL_DATES.length - 1;
-
-    // Get ALL provinces for this date
-    const dayData = DATA.filter(d => d.date === date);
-    if (dayData.length === 0) return;
-
-    let headerHtml = '<tr><th>Giải</th>';
-    dayData.forEach(d => {{
-        headerHtml += '<th>' + d.province_name + '</th>';
-    }});
-    headerHtml += '</tr>';
-    document.getElementById('resultHead').innerHTML = headerHtml;
-
-    const prizeRows = [
-        ['Tám', 'prize8'],
-        ['Bảy', 'prize7'],
-        ['Sáu 1', 'prize6_1'], ['Sáu 2', 'prize6_2'], ['Sáu 3', 'prize6_3'],
-        ['Năm', 'prize5'],
-        ['Tư 1', 'prize4_1'], ['Tư 2', 'prize4_2'], ['Tư 3', 'prize4_3'], ['Tư 4', 'prize4_4'],
-        ['Ba 1', 'prize3_1'], ['Ba 2', 'prize3_2'],
-        ['Nhì', 'prize2'],
-        ['Nhất', 'prize1'],
-        ['Đặc biệt', 'special'],
-    ];
-
-    let bodyHtml = '';
-    prizeRows.forEach(([label, field]) => {{
-        bodyHtml += '<tr>';
-        bodyHtml += '<td style="font-weight:600;color:#555">' + label + '</td>';
-        dayData.forEach(d => {{
-            const val = d[field];
-            const displayVal = formatByType(val, filterType);
-            const spCls = field === 'special' ? ' sp' : '';
-            if (filterDigit !== null && val && String(val).slice(-2).endsWith(String(filterDigit))) {{
-                const full = String(val);
-                const head = full.slice(0, -2);
-                const tail = full.slice(-2);
-                bodyHtml += '<td class="' + spCls + '">' + (head ? head : '') + '<span class="num-highlight">' + tail + '</span></td>';
-            }} else {{
-                bodyHtml += '<td class="' + spCls + '">' + (val ? displayVal : '-') + '</td>';
-            }}
-        }});
-        bodyHtml += '</tr>';
-    }});
-    document.getElementById('resultBody').innerHTML = bodyHtml;
-}}
-
-function prevResultDay() {{ if (resultDateIdx > 0) {{ resultDateIdx--; renderResultTable(); }} }}
-function nextResultDay() {{ if (resultDateIdx < ALL_DATES.length - 1) {{ resultDateIdx++; renderResultTable(); }} }}
-
-function setFilterType(type, el) {{
-    document.querySelectorAll('.filter-bar .btn-type').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    filterType = type;
-    renderResultTable();
-}}
-
-function filterByNum(num, el) {{
-    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
-    if (filterDigit === num) {{ filterDigit = null; }}
-    else {{ filterDigit = num; el.classList.add('active'); }}
-    renderResultTable();
-}}
-
-// ===== ANALYSIS FUNCTIONS =====
-function applyAnalysis() {{
-    analysisProvince = document.getElementById('selProvince').value;
-    analysisFiltered = DATA.filter(d => d.province === analysisProvince);
-    if (analysisDays > 0) {{
-        const dates = [...new Set(analysisFiltered.map(d => d.date))].sort();
-        const latest = dates[dates.length - 1];
-        const cutoff = new Date(latest);
-        cutoff.setDate(cutoff.getDate() - analysisDays);
-        const cutoffStr = cutoff.toISOString().split('T')[0];
-        analysisFiltered = analysisFiltered.filter(d => d.date >= cutoffStr);
-    }}
-    renderAnalysis();
-}}
-
-function quickFilter(days, el) {{
-    document.querySelectorAll('.btn-sm').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    analysisDays = days;
-    applyAnalysis();
-}}
-
-function clearHighlight() {{
-    selectedNum = null;
-    filterDigit = null;
-    document.querySelectorAll('.filter-bar .btn-num').forEach(b => b.classList.remove('active'));
-    renderResultTable();
-    renderAnalysis();
-}}
-
-function selectNumber(num) {{
-    selectedNum = selectedNum === num ? null : num;
-    renderAnalysis();
 }}
 
 function getNumbers(data) {{
@@ -399,53 +276,130 @@ function getNumbers(data) {{
     return nums;
 }}
 
-function renderAnalysis() {{
-    const ctx = document.getElementById('analysisContext');
-    const todayProv = document.getElementById('todayProvinces');
-    const freq = document.getElementById('freqGrid');
-    const overdue = document.getElementById('overdueGrid');
-    const head = document.getElementById('headChart');
-    const tail = document.getElementById('tailChart');
-    const mlTop = document.getElementById('mlTop');
-    const mlBot = document.getElementById('mlBottom');
-    const predToday = document.getElementById('predToday');
-    const predTodayInfo = document.getElementById('predTodayInfo');
-    const predTomorrow = document.getElementById('predTomorrow');
-    const predTomorrowInfo = document.getElementById('predTomorrowInfo');
-    const mlPred = document.getElementById('mlPred');
-
-    // Show today's and tomorrow's provinces
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    const todayData = DATA.filter(d => d.date === today);
-    const tomorrowData = DATA.filter(d => d.date === tomorrow);
-    const todayNames = todayData.map(d => d.province_name).join(', ') || 'Không có quay';
-    const tomorrowNames = tomorrowData.map(d => d.province_name).join(', ') || 'Không có quay';
-    todayProv.innerHTML = '<b>Hôm nay (' + fmtD(today) + '):</b> ' + todayNames + ' | <b>Ngày mai (' + fmtD(tomorrow) + '):</b> ' + tomorrowNames;
-
-    if (analysisFiltered.length === 0) {{
-        ctx.innerHTML = 'Chọn tỉnh để bắt đầu phân tích';
-        freq.innerHTML = overdue.innerHTML = head.innerHTML = tail.innerHTML = '';
-        mlTop.innerHTML = mlBot.innerHTML = '';
-        predToday.textContent = predTomorrow.textContent = mlPred.textContent = '--';
-        predTodayInfo.textContent = predTomorrowInfo.textContent = 'Chưa có dữ liệu';
-        return;
-    }}
-
-    const provName = PROVINCES.find(p => p.code === analysisProvince)?.name || analysisProvince;
-    const dates = [...new Set(analysisFiltered.map(d => d.date))].sort();
-    const start = dates[0], end = dates[dates.length - 1];
-    ctx.innerHTML = '<b>' + provName + '</b> | ' + fmtD(start) + ' đến ' + fmtD(end) + ' | <b>' + analysisFiltered.length + '</b> kết quả';
-
-    const nums = getNumbers(analysisFiltered);
+function calcScores(data) {{
+    const nums = getNumbers(data);
+    const dates = [...new Set(data.map(d => d.date))].sort();
     const total = dates.length;
+    const freq = {{}}, ls = {{}}; for(let i=0;i<100;i++) {{freq[i]=0;ls[i]=-1;}}
+    data.forEach((d,idx) => {{ for(let k in d) {{ if(k.startsWith('prize')||k==='special') {{ const n=d[k]%100; freq[n]++; ls[n]=idx; }} }} }});
+    const scores = {{}};
+    for(let i=0;i<100;i++) {{
+        const fs = freq[i]/(total*0.2);
+        const od = total-1-(ls[i]===-1?0:ls[i]);
+        const os = Math.min(od/50,1);
+        scores[i] = fs*0.5+os*0.5;
+    }}
+    const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+    const overdue = Object.entries(ls).map(([n,i]) => [parseInt(n), i===-1?data.length:data.length-1-i]).sort((a,b)=>b[1]-a[1]);
+    return {{ nums, total, freq, ls, sorted, overdue }};
+}}
+
+function getPredTop6(sorted) {{
+    return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
+}}
+
+// ===== RESULT SECTION =====
+function renderResultTable() {{
+    const date = ALL_DATES[resultDateIdx];
+    document.getElementById('resultDate').textContent = fmtD(date);
+    document.getElementById('btnPrev').disabled = resultDateIdx === 0;
+    document.getElementById('btnNext').disabled = resultDateIdx === ALL_DATES.length - 1;
+
+    const dayData = DATA.filter(d => d.date === date);
+    if (dayData.length === 0) return;
+
+    let headerHtml = '<tr><th>Giải</th>';
+    dayData.forEach(d => {{ headerHtml += '<th>' + d.province_name + '</th>'; }});
+    headerHtml += '</tr>';
+    document.getElementById('resultHead').innerHTML = headerHtml;
+
+    const prizeRows = [
+        ['Tám', 'prize8'], ['Bảy', 'prize7'],
+        ['Sáu 1', 'prize6_1'], ['Sáu 2', 'prize6_2'], ['Sáu 3', 'prize6_3'],
+        ['Năm', 'prize5'],
+        ['Tư 1', 'prize4_1'], ['Tư 2', 'prize4_2'], ['Tư 3', 'prize4_3'], ['Tư 4', 'prize4_4'],
+        ['Ba 1', 'prize3_1'], ['Ba 2', 'prize3_2'],
+        ['Nhì', 'prize2'], ['Nhất', 'prize1'], ['Đặc biệt', 'special'],
+    ];
+
+    let bodyHtml = '';
+    prizeRows.forEach(([label, field]) => {{
+        bodyHtml += '<tr><td style="font-weight:600;color:#555">' + label + '</td>';
+        dayData.forEach(d => {{
+            const val = d[field];
+            const displayVal = formatByType(val, filterType);
+            const spCls = field === 'special' ? ' sp' : '';
+            if (filterDigit !== null && val && String(val).slice(-2).endsWith(String(filterDigit))) {{
+                const full = String(val);
+                bodyHtml += '<td class="' + spCls + '">' + full.slice(0, -2) + '<span class="num-highlight">' + full.slice(-2) + '</span></td>';
+            }} else {{
+                bodyHtml += '<td class="' + spCls + '">' + (val ? displayVal : '-') + '</td>';
+            }}
+        }});
+        bodyHtml += '</tr>';
+    }});
+    document.getElementById('resultBody').innerHTML = bodyHtml;
+}}
+
+function prevResultDay() {{ if (resultDateIdx > 0) {{ resultDateIdx--; renderResultTable(); }} }}
+function nextResultDay() {{ if (resultDateIdx < ALL_DATES.length - 1) {{ resultDateIdx++; renderResultTable(); }} }}
+
+function setFilterType(type, el) {{
+    document.querySelectorAll('#resultFilter .btn-type').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    filterType = type;
+    renderResultTable();
+}}
+
+function filterByNum(num, el) {{
+    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
+    if (filterDigit === num) {{ filterDigit = null; }}
+    else {{ filterDigit = num; el.classList.add('active'); }}
+    renderResultTable();
+}}
+
+function clearHighlight() {{
+    selectedNum = null;
+    filterDigit = null;
+    document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active'));
+    renderResultTable();
+    renderAnalysis();
+}}
+
+function selectNumber(num) {{
+    selectedNum = selectedNum === num ? null : num;
+    renderAnalysis();
+}}
+
+// ===== ANALYSIS SECTION =====
+function prevAnalysisDay() {{ if (analysisDateIdx > 0) {{ analysisDateIdx--; renderAnalysis(); }} }}
+function nextAnalysisDay() {{ if (analysisDateIdx < ALL_DATES.length - 1) {{ analysisDateIdx++; renderAnalysis(); }} }}
+
+function renderAnalysis() {{
+    const date = ALL_DATES[analysisDateIdx];
+    document.getElementById('analysisDate').textContent = fmtD(date);
+
+    // Show provinces for this date and next day
+    const dayData = DATA.filter(d => d.date === date);
+    const nextDate = analysisDateIdx < ALL_DATES.length - 1 ? ALL_DATES[analysisDateIdx + 1] : null;
+    const nextData = nextDate ? DATA.filter(d => d.date === nextDate) : [];
+    const todayNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
+    const tomorrowNames = nextData.map(d => d.province_name).join(', ') || 'Không có';
+    document.getElementById('todayProvinces').innerHTML = '<b>Hôm nay (' + fmtD(date) + '):</b> ' + todayNames + '&nbsp;&nbsp;|&nbsp;&nbsp;<b>Ngày mai' + (nextDate ? ' (' + fmtD(nextDate) + ')' : '') + ':</b> ' + tomorrowNames;
+
+    // Use all data for analysis (historical)
+    const allProvCodes = [...new Set(dayData.map(d => d.province))];
+    const ctx = document.getElementById('analysisContext');
+    ctx.innerHTML = 'Phân tích dựa trên lịch sử <b>' + allProvCodes.length + '</b> đài | <b>' + DATA.length + '</b> kết quả';
+
+    // Render freq/overdue/headtail using ALL data for these provinces
+    const histData = DATA.filter(d => allProvCodes.includes(d.province));
+    const result = calcScores(histData);
 
     // Freq
-    const cnt = {{}}; for(let i=0;i<100;i++) cnt[i]=0;
-    nums.forEach(n => cnt[n]++);
-    const mx = Math.max(...Object.values(cnt));
-    const sorted = Object.entries(cnt).sort((a,b) => b[1]-a[1]);
-    freq.innerHTML = sorted.map(([n,c]) => {{
+    const freqGrid = document.getElementById('freqGrid');
+    const mx = Math.max(...Object.values(result.freq));
+    freqGrid.innerHTML = Object.entries(result.freq).sort((a,b)=>b[1]-a[1]).map(([n,c]) => {{
         const p = mx>0 ? c/mx*100 : 0;
         const cls = p>80?'hot':p>60?'warm':p>40?'normal':p>20?'cool':'cold';
         const sel = selectedNum === parseInt(n) ? ' selected' : '';
@@ -453,11 +407,9 @@ function renderAnalysis() {{
     }}).join('');
 
     // Overdue
-    const ls = {{}}; for(let i=0;i<100;i++) ls[i]=-1;
-    analysisFiltered.forEach((d,idx) => {{ for(let k in d) {{ if(k.startsWith('prize')||k==='special') ls[d[k]%100]=idx; }} }});
-    const od = Object.entries(ls).map(([n,i]) => [parseInt(n), i===-1?analysisFiltered.length:analysisFiltered.length-1-i]).sort((a,b)=>b[1]-a[1]);
-    const mxOd = Math.max(...od.map(x=>x[1]));
-    overdue.innerHTML = od.map(([n,d]) => {{
+    const overdueGrid = document.getElementById('overdueGrid');
+    const mxOd = Math.max(...result.overdue.map(x=>x[1]));
+    overdueGrid.innerHTML = result.overdue.map(([n,d]) => {{
         const p = mxOd>0 ? d/mxOd*100 : 0;
         const cls = p>80?'hot':p>60?'warm':p>30?'normal':'cool';
         const sel = selectedNum === n ? ' selected' : '';
@@ -466,52 +418,67 @@ function renderAnalysis() {{
 
     // Head-Tail
     const hc = {{}}, tc = {{}}; for(let i=0;i<10;i++) {{hc[i]=0;tc[i]=0;}}
-    nums.forEach(n => {{ hc[Math.floor(n/10)]++; tc[n%10]++; }});
+    result.nums.forEach(n => {{ hc[Math.floor(n/10)]++; tc[n%10]++; }});
     const mxH = Math.max(...Object.values(hc)), mxT = Math.max(...Object.values(tc));
-    head.innerHTML = Object.entries(hc).sort((a,b)=>b[1]-a[1]).map(([h,c]) => {{
+    document.getElementById('headChart').innerHTML = Object.entries(hc).sort((a,b)=>b[1]-a[1]).map(([h,c]) => {{
         const p = mxH>0?c/mxH*100:0;
         return '<div class="bar-row"><div class="bar-label">'+h+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
     }}).join('');
-    tail.innerHTML = Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,c]) => {{
+    document.getElementById('tailChart').innerHTML = Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,c]) => {{
         const p = mxT>0?c/mxT*100:0;
         return '<div class="bar-row"><div class="bar-label">'+t+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(200-p)+',70%,45%)">'+c+'</div></div>';
     }}).join('');
 
-    // ML Scores
-    const freq2 = {{}}, ls2 = {{}}; for(let i=0;i<100;i++) {{freq2[i]=0;ls2[i]=-1;}}
-    analysisFiltered.forEach((d,idx) => {{ for(let k in d) {{ if(k.startsWith('prize')||k==='special') {{ const n=d[k]%100; freq2[n]++; ls2[n]=idx; }} }} }});
-    const scores = {{}};
-    for(let i=0;i<100;i++) {{
-        const fs = freq2[i]/(total*0.2);
-        const od2 = total-1-(ls2[i]===-1?0:ls2[i]);
-        const os = Math.min(od2/50,1);
-        scores[i] = fs*0.5+os*0.5;
-    }}
-    const sortedScores = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-    const mxS = sortedScores[0][1];
-
-    mlTop.innerHTML = sortedScores.slice(0,20).map(([n,s]) => {{
+    // ML Top/Bottom
+    const mxS = result.sorted[0][1];
+    document.getElementById('mlTop').innerHTML = result.sorted.slice(0,20).map(([n,s]) => {{
         const p = s/mxS*100;
         const sel = selectedNum === parseInt(n) ? ' style="outline:2px solid #f39c12"' : '';
         return '<div class="bar-row"'+sel+' onclick="selectNumber('+n+')"><div class="bar-label">'+n+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(120-p)+',70%,45%)">'+(s*100).toFixed(1)+'%</div></div>';
     }}).join('');
-    mlBot.innerHTML = sortedScores.slice(-20).reverse().map(([n,s]) => {{
+    document.getElementById('mlBottom').innerHTML = result.sorted.slice(-20).reverse().map(([n,s]) => {{
         const p = s/mxS*100;
         const sel = selectedNum === parseInt(n) ? ' style="outline:2px solid #f39c12"' : '';
         return '<div class="bar-row"'+sel+' onclick="selectNumber('+n+')"><div class="bar-label">'+n+'</div><div class="bar" style="width:'+p+'%;background:hsl('+(240-p)+',50%,60%)">'+(s*100).toFixed(1)+'%</div></div>';
     }}).join('');
 
-    // Predictions
-    const latestDate = ALL_DATES[ALL_DATES.length - 1];
-    const overduePred = od.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
-    predToday.textContent = overduePred;
-    predTodayInfo.textContent = 'Số lâu chưa ra nhất';
+    // ===== TODAY PREDICTIONS =====
+    let todayHtml = '';
+    // Combined (all 3 provinces)
+    const combinedSorted = result.sorted;
+    const combinedPred = getPredTop6(combinedSorted);
+    todayHtml += '<div class="predict-box predict-main"><h3>Tổng hợp 3 đài</h3><div class="nums">' + combinedPred + '</div><small>' + allProvCodes.length + ' đài gộp lại</small></div>';
 
-    const mlPred6 = sortedScores.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
-    predTomorrow.textContent = mlPred6;
-    predTomorrowInfo.textContent = 'Phân tích tần suất + độ trễ';
+    // Per-province predictions
+    dayData.forEach(d => {{
+        const provHist = DATA.filter(x => x.province === d.province);
+        const provResult = calcScores(provHist);
+        const provPred = getPredTop6(provResult.sorted);
+        todayHtml += '<div class="predict-box predict-prov"><h3>' + d.province_name + '</h3><div class="nums">' + provPred + '</div><small>Lịch sử ' + provHist.length + ' kết quả</small></div>';
+    }});
+    document.getElementById('predTodayGrid').innerHTML = todayHtml;
 
-    mlPred.textContent = sortedScores.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - ');
+    // ===== TOMORROW PREDICTIONS =====
+    let tomorrowHtml = '';
+    if (nextData.length > 0) {{
+        // Combined for tomorrow's provinces
+        const tomorrowCodes = [...new Set(nextData.map(d => d.province))];
+        const tomorrowHist = DATA.filter(d => tomorrowCodes.includes(d.province));
+        const tomorrowResult = calcScores(tomorrowHist);
+        const tomorrowPred = getPredTop6(tomorrowResult.sorted);
+        tomorrowHtml += '<div class="predict-box predict-tomorrow"><h3>Tổng hợp 3 đài</h3><div class="nums">' + tomorrowPred + '</div><small>' + tomorrowCodes.length + ' đài gộp lại</small></div>';
+
+        // Per-province predictions for tomorrow
+        nextData.forEach(d => {{
+            const provHist = DATA.filter(x => x.province === d.province);
+            const provResult = calcScores(provHist);
+            const provPred = getPredTop6(provResult.sorted);
+            tomorrowHtml += '<div class="predict-box predict-prov"><h3>' + d.province_name + '</h3><div class="nums">' + provPred + '</div><small>Lịch sử ' + provHist.length + ' kết quả</small></div>';
+        }});
+    }} else {{
+        tomorrowHtml = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:#999">Chưa có dữ liệu ngày mai</div>';
+    }}
+    document.getElementById('predTomorrowGrid').innerHTML = tomorrowHtml;
 }}
 
 function showTab(el, id) {{
@@ -523,7 +490,7 @@ function showTab(el, id) {{
 
 // Init
 renderResultTable();
-applyAnalysis();
+renderAnalysis();
 </script>
 </body>
 </html>'''
@@ -534,23 +501,19 @@ applyAnalysis();
 
 def generate_readme_md(lottery: XSMNLottery):
     """Generate README.md with XSMN data in Markdown format."""
-    import json
-    from datetime import datetime
+    from datetime import timedelta
+    from collections import Counter
 
     data = lottery.get_raw_data()
     if data.empty:
         print('No data for README.md')
         return
 
-    # Get latest date
     latest_date = data['date'].max()
     latest_data = data[data['date'] == latest_date]
-
-    # Get unique dates count
     total_dates = data['date'].nunique()
     total_provinces = data['province'].nunique()
 
-    # Get latest results for each province
     latest_results = []
     for _, row in latest_data.iterrows():
         prov = row['province']
@@ -561,8 +524,6 @@ def generate_readme_md(lottery: XSMNLottery):
             'prize1': f"{int(row['prize1']):05d}",
         })
 
-    # Get frequency analysis (last 30 days)
-    from datetime import timedelta
     recent_data = data[data['date'] >= latest_date - timedelta(days=30)]
     all_numbers = []
     for col in ['special', 'prize1', 'prize2', 'prize3_1', 'prize3_2',
@@ -572,11 +533,9 @@ def generate_readme_md(lottery: XSMNLottery):
             vals = recent_data[col].dropna()
             all_numbers.extend([f"{int(v):02d}"[-2:] for v in vals])
 
-    from collections import Counter
     freq = Counter(all_numbers)
     top10 = freq.most_common(10)
 
-    # Build README.md
     md = f"""# Xổ số Miền Nam (XSMN) Analysis
 
 > Auto-updated daily by GitHub Actions
