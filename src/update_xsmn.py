@@ -172,19 +172,11 @@ def generate_html(lottery: XSMNLottery):
     </div>
 
     <div class="card">
-        <h2>Phân tích dự đoán</h2>
-        <div class="date-nav">
-            <button class="btn-nav" onclick="prevAnalysisDay()">&#9664;</button>
-            <div class="date" id="analysisDate"></div>
-            <button class="btn-nav" onclick="nextAnalysisDay()">&#9654;</button>
-        </div>
-        <div class="prov-info" id="todayProvinces"></div>
+        <h2>Phân tích dự đoán 7 ngày tới</h2>
+        <div class="prov-info" id="weekInfo"></div>
 
-        <!-- HÔM NAY -->
-        <div id="predTodaySection"></div>
-
-        <!-- NGÀY MAI -->
-        <div id="predTomorrowSection" style="margin-top:20px"></div>
+        <!-- 7 DAYS PREDICTIONS -->
+        <div id="weekPredictions"></div>
 
         <!-- BACKTEST -->
         <div style="margin-top:24px; padding-top:20px; border-top: 2px solid #eee;">
@@ -367,18 +359,6 @@ function prevAnalysisDay() {{ if (analysisDateIdx > 0) {{ analysisDateIdx--; ren
 function nextAnalysisDay() {{ if (analysisDateIdx < ALL_DATES.length - 1) {{ analysisDateIdx++; renderAnalysis(); }} }}
 
 function renderAnalysis() {{
-    const date = ALL_DATES[analysisDateIdx];
-    document.getElementById('analysisDate').textContent = fmtD(date);
-
-    const dayData = DATA.filter(d => d.date === date);
-
-    // Calculate next day's provinces using XSMN schedule
-    const nextDateObj = new Date(date);
-    nextDateObj.setDate(nextDateObj.getDate() + 1);
-    const nextDateStr = nextDateObj.toISOString().split('T')[0];
-    const nextDateDayOfWeek = nextDateObj.getDay(); // 0=Sun, 1=Mon, ...
-
-    // XSMN schedule by day of week
     const SCHEDULE = {{
         0: ['TGI', 'KG', 'DL'],       // Sunday
         1: ['TTP', 'DT', 'CM'],        // Monday
@@ -400,49 +380,64 @@ function renderAnalysis() {{
         'KG': 'Kiên Giang', 'DL': 'Đà Lạt'
     }};
 
-    // Get next day's province codes from schedule
-    const nextProvCodes = SCHEDULE[nextDateDayOfWeek] || [];
-    const nextProvNames = nextProvCodes.map(c => PROVINCE_MAP[c] || c).join(', ') || 'Không có lịch quay';
+    const DAY_NAMES = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
-    // Check if we have actual data for next day
-    const nextData = DATA.filter(d => d.date === nextDateStr);
+    // Get latest date in data
+    const latestDate = ALL_DATES[ALL_DATES.length - 1];
+    const latestObj = new Date(latestDate);
 
-    const todayNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
-    document.getElementById('todayProvinces').innerHTML = '<b>Hôm nay (' + fmtD(date) + '):</b> ' + todayNames + '&nbsp;&nbsp;|&nbsp;&nbsp;<b>Ngày mai (' + fmtD(nextDateStr) + '):</b> ' + nextProvNames;
+    // Build 7 days starting from today (or latest date + 1)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = today > latestObj ? today : new Date(latestObj);
+    startDate.setDate(startDate.getDate() + 1); // Start from tomorrow
 
-    // TODAY: 3 columns
-    let todayHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán hôm nay (' + fmtD(date) + ')</h3><div class="three-col">';
-    dayData.forEach(d => {{
-        const histData = DATA.filter(x => x.province === d.province);
-        todayHtml += renderProvCard(d.province_name, histData, d.province);
-    }});
-    todayHtml += '</div>';
-    document.getElementById('predTodaySection').innerHTML = todayHtml;
+    let weekHtml = '';
+    let weekInfo = '<b>Lịch quay 7 ngày tới:</b> ';
 
-    // TOMORROW: Predict for scheduled provinces
-    let tomorrowHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán ngày mai (' + fmtD(nextDateStr) + ')</h3><div class="three-col">';
+    for (let i = 0; i < 7; i++) {{
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayOfWeek = d.getDay();
+        const provCodes = SCHEDULE[dayOfWeek] || [];
+        const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
 
-    // Use next day's actual data if available, otherwise predict using schedule
-    if (nextData.length > 0) {{
-        nextData.forEach(d => {{
-            const histData = DATA.filter(x => x.province === d.province);
-            tomorrowHtml += renderProvCard(d.province_name, histData, d.province);
-        }});
-    }} else {{
-        // Predict using historical data for scheduled provinces
-        nextProvCodes.forEach(code => {{
-            const provName = PROVINCE_MAP[code] || code;
-            const histData = DATA.filter(x => x.province === code);
-            if (histData.length > 0) {{
-                tomorrowHtml += renderProvCard(provName, histData, code);
-            }}
-        }});
-        if (nextProvCodes.length === 0) {{
-            tomorrowHtml += '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#999">Không có lịch quay ngày mai</div>';
+        if (i === 0) {{
+            weekInfo += DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + '): ' + provNames.join(', ');
+        }} else {{
+            weekInfo += ' | ' + DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + '): ' + provNames.join(', ');
         }}
+
+        // Check if we have actual data
+        const dayData = DATA.filter(dd => dd.date === dateStr);
+
+        weekHtml += '<div style="margin-bottom:20px">';
+        weekHtml += '<h3 style="color:#1a5276;margin-bottom:12px;font-size:15px;border-left:4px solid #2e86c1;padding-left:10px">' + DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + ')</h3>';
+        weekHtml += '<div class="three-col">';
+
+        if (dayData.length > 0) {{
+            // Use actual data
+            dayData.forEach(d => {{
+                const histData = DATA.filter(x => x.province === d.province);
+                weekHtml += renderProvCard(d.province_name, histData, d.province);
+            }});
+        }} else {{
+            // Predict using historical data for scheduled provinces
+            provCodes.forEach(code => {{
+                const provName = PROVINCE_MAP[code] || code;
+                const histData = DATA.filter(x => x.province === code);
+                if (histData.length > 0) {{
+                    weekHtml += renderProvCard(provName, histData, code);
+                }}
+            }});
+        }}
+
+        weekHtml += '</div></div>';
     }}
-    tomorrowHtml += '</div>';
-    document.getElementById('predTomorrowSection').innerHTML = tomorrowHtml;
+
+    document.getElementById('weekInfo').innerHTML = weekInfo;
+    document.getElementById('weekPredictions').innerHTML = weekHtml;
 }}
 
 // ===== BACKTEST =====
