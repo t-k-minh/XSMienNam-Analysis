@@ -308,13 +308,44 @@ function renderAnalysis() {
     document.getElementById('analysisDate').textContent = fmtD(date);
 
     const dayData = DATA.filter(d => d.date === date);
-    const nextIdx = analysisDateIdx < ALL_DATES.length - 1 ? analysisDateIdx + 1 : -1;
-    const nextDate = nextIdx >= 0 ? ALL_DATES[nextIdx] : null;
-    const nextData = nextDate ? DATA.filter(d => d.date === nextDate) : [];
+
+    // Calculate next day's provinces using XSMN schedule
+    const nextDateObj = new Date(date);
+    nextDateObj.setDate(nextDateObj.getDate() + 1);
+    const nextDateStr = nextDateObj.toISOString().split('T')[0];
+    const nextDateDayOfWeek = nextDateObj.getDay(); // 0=Sun, 1=Mon, ...
+
+    // XSMN schedule by day of week
+    const SCHEDULE = {
+        0: ['TGI', 'KG', 'DL'],       // Sunday
+        1: ['TTP', 'DT', 'CM'],        // Monday
+        2: ['BTR', 'VT', 'BL'],        // Tuesday
+        3: ['DNA', 'CT', 'ST'],        // Wednesday
+        4: ['TNI', 'AG', 'BTH'],       // Thursday
+        5: ['VL', 'BD', 'TV'],         // Friday
+        6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
+    };
+
+    const PROVINCE_MAP = {
+        'TTP': 'TP. Hồ Chí Minh', 'HCM': 'TP. Hồ Chí Minh',
+        'DT': 'Đồng Tháp', 'CM': 'Cà Mau', 'BTR': 'Bến Tre',
+        'VT': 'Vũng Tàu', 'BL': 'Bạc Liêu', 'DNA': 'Đồng Nai',
+        'CT': 'Cần Thơ', 'ST': 'Sóc Trăng', 'TNI': 'Tây Ninh',
+        'AG': 'An Giang', 'BTH': 'Bình Thuận', 'VL': 'Vĩnh Long',
+        'BD': 'Bình Dương', 'TV': 'Trà Vinh', 'LA': 'Long An',
+        'BP': 'Bình Phước', 'HGG': 'Hậu Giang', 'TGI': 'Tiền Giang',
+        'KG': 'Kiên Giang', 'DL': 'Đà Lạt'
+    };
+
+    // Get next day's province codes from schedule
+    const nextProvCodes = SCHEDULE[nextDateDayOfWeek] || [];
+    const nextProvNames = nextProvCodes.map(c => PROVINCE_MAP[c] || c).join(', ') || 'Không có lịch quay';
+
+    // Check if we have actual data for next day
+    const nextData = DATA.filter(d => d.date === nextDateStr);
 
     const todayNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
-    const tomorrowNames = nextData.map(d => d.province_name).join(', ') || 'Không có';
-    document.getElementById('todayProvinces').innerHTML = '<b>Hôm nay (' + fmtD(date) + '):</b> ' + todayNames + '&nbsp;&nbsp;|&nbsp;&nbsp;<b>Ngày mai' + (nextDate ? ' (' + fmtD(nextDate) + ')' : '') + ':</b> ' + tomorrowNames;
+    document.getElementById('todayProvinces').innerHTML = '<b>Hôm nay (' + fmtD(date) + '):</b> ' + todayNames + '&nbsp;&nbsp;|&nbsp;&nbsp;<b>Ngày mai (' + fmtD(nextDateStr) + '):</b> ' + nextProvNames;
 
     // TODAY: 3 columns
     let todayHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán hôm nay (' + fmtD(date) + ')</h3><div class="three-col">';
@@ -325,15 +356,27 @@ function renderAnalysis() {
     todayHtml += '</div>';
     document.getElementById('predTodaySection').innerHTML = todayHtml;
 
-    // TOMORROW: 3 columns
-    let tomorrowHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán ngày mai' + (nextDate ? ' (' + fmtD(nextDate) + ')' : '') + '</h3><div class="three-col">';
+    // TOMORROW: Predict for scheduled provinces
+    let tomorrowHtml = '<h3 style="color:#1a5276;margin-bottom:12px;font-size:16px">Dự đoán ngày mai (' + fmtD(nextDateStr) + ')</h3><div class="three-col">';
+
+    // Use next day's actual data if available, otherwise predict using schedule
     if (nextData.length > 0) {
         nextData.forEach(d => {
             const histData = DATA.filter(x => x.province === d.province);
             tomorrowHtml += renderProvCard(d.province_name, histData, d.province);
         });
     } else {
-        tomorrowHtml += '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#999">Chưa có dữ liệu ngày mai</div>';
+        // Predict using historical data for scheduled provinces
+        nextProvCodes.forEach(code => {
+            const provName = PROVINCE_MAP[code] || code;
+            const histData = DATA.filter(x => x.province === code);
+            if (histData.length > 0) {
+                tomorrowHtml += renderProvCard(provName, histData, code);
+            }
+        });
+        if (nextProvCodes.length === 0) {
+            tomorrowHtml += '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#999">Không có lịch quay ngày mai</div>';
+        }
     }
     tomorrowHtml += '</div>';
     document.getElementById('predTomorrowSection').innerHTML = tomorrowHtml;
