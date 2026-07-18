@@ -251,6 +251,22 @@ function calcScores(data) {{
 }}
 function predTop6(sorted) {{ return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - '); }}
 
+// Thompson Sampling prediction
+function thompsonPredict(data) {{
+    const alpha = new Array(100).fill(1);
+    data.forEach(d => {{
+        for (let k in d) {{
+            if ((k.startsWith('prize') || k === 'special') && d[k]) {{
+                const n = parseInt(String(d[k]).slice(-2));
+                if (!isNaN(n)) alpha[n]++;
+            }}
+        }}
+    }});
+    const probs = alpha.map((a, i) => [i, a / (a + 1)]);
+    probs.sort((a, b) => b[1] - a[1]);
+    return new Set(probs.slice(0, 6).map(([n]) => n));
+}}
+
 function renderProvCard(provName, histData, provCode) {{
     const r = calcScores(histData);
     const mx = Math.max(...Object.values(r.freq));
@@ -261,8 +277,16 @@ function renderProvCard(provName, histData, provCode) {{
 
     let html = '<div class="prov-card"><h3>' + provName + ' (' + r.total + ' kỳ)</h3>';
 
-    // AI Prediction (FIRST)
-    html += '<div class="predict-box predict-main"><div class="nums">' + predTop6(r.sorted) + '</div><small>Phân tích tần suất + độ trễ</small></div>';
+    // ENSEMBLE PREDICTION (Thompson + Statistical)
+    const thompsonPred = thompsonPredict(histData);
+    const statPred = new Set(r.sorted.slice(0,6).map(([n])=>n));
+    const votes = {{}};
+    thompsonPred.forEach(n => {{ votes[n] = (votes[n] || 0) + 1; }});
+    statPred.forEach(n => {{ votes[n] = (votes[n] || 0) + 1; }});
+    const ensembleTop6 = Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n));
+    const ensembleStr = ensembleTop6.map(n => String(n).padStart(2, '0')).join(' - ');
+
+    html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson + Statistical</small></div>';
 
     // Frequency - use r.freq for counts, sort by count
     html += '<h4>Tần suất</h4><div class="grid10">';
