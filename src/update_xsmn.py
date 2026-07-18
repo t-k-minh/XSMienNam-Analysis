@@ -172,11 +172,16 @@ def generate_html(lottery: XSMNLottery):
     </div>
 
     <div class="card">
-        <h2>Phân tích dự đoán 7 ngày tới</h2>
-        <div class="prov-info" id="weekInfo"></div>
+        <h2>Phân tích dự đoán</h2>
+        <div class="date-nav">
+            <button class="btn-nav" id="btnPrevAnalysis" onclick="prevAnalysisDay()">&#9664;</button>
+            <div class="date" id="analysisDate"></div>
+            <button class="btn-nav" id="btnNextAnalysis" onclick="nextAnalysisDay()">&#9654;</button>
+        </div>
+        <div class="prov-info" id="todayProvinces"></div>
 
-        <!-- 7 DAYS PREDICTIONS -->
-        <div id="weekPredictions"></div>
+        <!-- PREDICTIONS -->
+        <div id="predTodaySection"></div>
 
         <!-- BACKTEST -->
         <div style="margin-top:24px; padding-top:20px; border-top: 2px solid #eee;">
@@ -359,85 +364,26 @@ function prevAnalysisDay() {{ if (analysisDateIdx > 0) {{ analysisDateIdx--; ren
 function nextAnalysisDay() {{ if (analysisDateIdx < ALL_DATES.length - 1) {{ analysisDateIdx++; renderAnalysis(); }} }}
 
 function renderAnalysis() {{
-    const SCHEDULE = {{
-        0: ['TGI', 'KG', 'DL'],       // Sunday
-        1: ['TTP', 'DT', 'CM'],        // Monday
-        2: ['BTR', 'VT', 'BL'],        // Tuesday
-        3: ['DNA', 'CT', 'ST'],        // Wednesday
-        4: ['TNI', 'AG', 'BTH'],       // Thursday
-        5: ['VL', 'BD', 'TV'],         // Friday
-        6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
-    }};
+    const date = ALL_DATES[analysisDateIdx];
+    document.getElementById('analysisDate').textContent = fmtD(date);
+    document.getElementById('btnPrevAnalysis').disabled = analysisDateIdx === 0;
+    document.getElementById('btnNextAnalysis').disabled = analysisDateIdx >= ALL_DATES.length - 1;
 
-    const PROVINCE_MAP = {{
-        'TTP': 'TP. Hồ Chí Minh', 'HCM': 'TP. Hồ Chí Minh',
-        'DT': 'Đồng Tháp', 'CM': 'Cà Mau', 'BTR': 'Bến Tre',
-        'VT': 'Vũng Tàu', 'BL': 'Bạc Liêu', 'DNA': 'Đồng Nai',
-        'CT': 'Cần Thơ', 'ST': 'Sóc Trăng', 'TNI': 'Tây Ninh',
-        'AG': 'An Giang', 'BTH': 'Bình Thuận', 'VL': 'Vĩnh Long',
-        'BD': 'Bình Dương', 'TV': 'Trà Vinh', 'LA': 'Long An',
-        'BP': 'Bình Phước', 'HGG': 'Hậu Giang', 'TGI': 'Tiền Giang',
-        'KG': 'Kiên Giang', 'DL': 'Đà Lạt'
-    }};
+    const dayData = DATA.filter(d => d.date === date);
 
-    const DAY_NAMES = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+    // Get province names for this date
+    const provNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
+    document.getElementById('todayProvinces').innerHTML = '<b>' + fmtD(date) + ':</b> ' + provNames;
 
-    // Get latest date in data
-    const latestDate = ALL_DATES[ALL_DATES.length - 1];
-    const latestObj = new Date(latestDate);
+    // Render predictions for this day
+    let html = '<div class="three-col">';
+    dayData.forEach(d => {{
+        const histData = DATA.filter(x => x.province === d.province);
+        html += renderProvCard(d.province_name, histData, d.province);
+    }});
+    html += '</div>';
 
-    // Build 7 days starting from today (or latest date + 1)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDate = today > latestObj ? today : new Date(latestObj);
-    startDate.setDate(startDate.getDate() + 1); // Start from tomorrow
-
-    let weekHtml = '';
-    let weekInfo = '<b>Lịch quay 7 ngày tới:</b> ';
-
-    for (let i = 0; i < 7; i++) {{
-        const d = new Date(startDate);
-        d.setDate(d.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
-        const dayOfWeek = d.getDay();
-        const provCodes = SCHEDULE[dayOfWeek] || [];
-        const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
-
-        if (i === 0) {{
-            weekInfo += DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + '): ' + provNames.join(', ');
-        }} else {{
-            weekInfo += ' | ' + DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + '): ' + provNames.join(', ');
-        }}
-
-        // Check if we have actual data
-        const dayData = DATA.filter(dd => dd.date === dateStr);
-
-        weekHtml += '<div style="margin-bottom:20px">';
-        weekHtml += '<h3 style="color:#1a5276;margin-bottom:12px;font-size:15px;border-left:4px solid #2e86c1;padding-left:10px">' + DAY_NAMES[dayOfWeek] + ' (' + fmtD(dateStr) + ')</h3>';
-        weekHtml += '<div class="three-col">';
-
-        if (dayData.length > 0) {{
-            // Use actual data
-            dayData.forEach(d => {{
-                const histData = DATA.filter(x => x.province === d.province);
-                weekHtml += renderProvCard(d.province_name, histData, d.province);
-            }});
-        }} else {{
-            // Predict using historical data for scheduled provinces
-            provCodes.forEach(code => {{
-                const provName = PROVINCE_MAP[code] || code;
-                const histData = DATA.filter(x => x.province === code);
-                if (histData.length > 0) {{
-                    weekHtml += renderProvCard(provName, histData, code);
-                }}
-            }});
-        }}
-
-        weekHtml += '</div></div>';
-    }}
-
-    document.getElementById('weekInfo').innerHTML = weekInfo;
-    document.getElementById('weekPredictions').innerHTML = weekHtml;
+    document.getElementById('predTodaySection').innerHTML = html;
 }}
 
 // ===== BACKTEST =====
@@ -480,8 +426,31 @@ function runBacktest() {{
                 }}
                 if (trainData.length < 10) continue;
 
+                // ENSEMBLE: Thompson + Statistical
+                // Thompson Sampling
+                const alpha = new Array(100).fill(1);
+                trainData.forEach(d => {{
+                    for (let k in d) {{
+                        if ((k.startsWith('prize') || k === 'special') && d[k]) {{
+                            const n = parseInt(String(d[k]).slice(-2));
+                            if (!isNaN(n)) alpha[n]++;
+                        }}
+                    }}
+                }});
+                const thompsonPred = new Set();
+                const thompsonScores = alpha.map((a, idx) => [idx, a / (a + 1)]);
+                thompsonScores.sort((a, b) => b[1] - a[1]);
+                thompsonScores.slice(0, 6).forEach(([n]) => thompsonPred.add(n));
+
+                // Statistical
                 const r = calcScores(trainData);
-                const predicted = new Set(r.sorted.slice(0,6).map(([n])=>parseInt(n)));
+                const statPred = new Set(r.sorted.slice(0,6).map(([n])=>parseInt(n)));
+
+                // Ensemble vote
+                const votes = {{}};
+                thompsonPred.forEach(n => {{ votes[n] = (votes[n] || 0) + 1; }});
+                statPred.forEach(n => {{ votes[n] = (votes[n] || 0) + 1; }});
+                const predicted = new Set(Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
 
                 // Chi lay 2 so cuoi GIAI DAC BIET
                 const actual = provData[i];
