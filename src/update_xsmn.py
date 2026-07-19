@@ -263,7 +263,7 @@ function thompsonPredict(data) {{
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }}
 
-function renderProvCard(provName, histData, provCode, cutoffDate) {{
+function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) {{
     // If cutoffDate provided, only use data before that date
     if (cutoffDate) {{
         histData = histData.filter(d => d.date < cutoffDate);
@@ -289,7 +289,20 @@ function renderProvCard(provName, histData, provCode, cutoffDate) {{
     const ensembleTop6 = Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n));
     const ensembleStr = ensembleTop6.map(n => String(n).padStart(2, '0')).join(' - ');
 
+    // Show prediction
     html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson + Statistical</small></div>';
+
+    // Show actual result and comparison if available
+    if (actualResult !== undefined && actualResult !== null) {{
+        const actualNum = parseInt(String(actualResult).slice(-2));
+        const isHit = ensembleTop6.includes(actualNum);
+        const hitStyle = isHit ? 'background:#27ae60' : 'background:#e74c3c';
+        html += '<div style="padding:8px;border-radius:8px;margin-top:8px;text-align:center;font-size:12px">';
+        html += '<span style="color:#666">Kết quả thực: </span>';
+        html += '<span style="font-weight:bold;font-size:14px">' + String(actualNum).padStart(2, '0') + '</span>';
+        html += ' <span style="' + hitStyle + ';color:white;padding:2px 8px;border-radius:4px;font-size:11px">' + (isHit ? 'TRÚNG' : 'SAI') + '</span>';
+        html += '</div>';
+    }}
 
     // Frequency - use r.freq for counts, sort by count
     html += '<h4>Tần suất</h4><div class="grid10">';
@@ -431,14 +444,14 @@ function renderAnalysis() {{
         if (dayData.length > 0) {{
             dayData.forEach(d => {{
                 const histData = DATA.filter(x => x.province === d.province);
-                weekHtml += renderProvCard(d.province_name, histData, d.province, dateStr);
+                weekHtml += renderProvCard(d.province_name, histData, d.province, dateStr, d.special);
             }});
         }} else {{
             provCodes.forEach(code => {{
                 const provName = PROVINCE_MAP[code] || code;
                 const histData = DATA.filter(x => x.province === code);
                 if (histData.length > 0) {{
-                    weekHtml += renderProvCard(provName, histData, code, dateStr);
+                    weekHtml += renderProvCard(provName, histData, code, dateStr, null);
                 }}
             }});
         }}
