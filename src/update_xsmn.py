@@ -263,7 +263,14 @@ function thompsonPredict(data) {{
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }}
 
-function renderProvCard(provName, histData, provCode) {{
+function renderProvCard(provName, histData, provCode, cutoffDate) {{
+    // If cutoffDate provided, only use data before that date
+    if (cutoffDate) {{
+        histData = histData.filter(d => d.date < cutoffDate);
+    }}
+    if (histData.length < 5) {{
+        return '<div class="prov-card"><h3>' + provName + '</h3><p style="color:#999;text-align:center">Không đủ dữ liệu</p></div>';
+    }}
     const r = calcScores(histData);
     const mx = Math.max(...Object.values(r.freq));
     const mxOd = Math.max(...r.overdue.map(x=>x[1]));
@@ -424,14 +431,14 @@ function renderAnalysis() {{
         if (dayData.length > 0) {{
             dayData.forEach(d => {{
                 const histData = DATA.filter(x => x.province === d.province);
-                weekHtml += renderProvCard(d.province_name, histData, d.province);
+                weekHtml += renderProvCard(d.province_name, histData, d.province, dateStr);
             }});
         }} else {{
             provCodes.forEach(code => {{
                 const provName = PROVINCE_MAP[code] || code;
                 const histData = DATA.filter(x => x.province === code);
                 if (histData.length > 0) {{
-                    weekHtml += renderProvCard(provName, histData, code);
+                    weekHtml += renderProvCard(provName, histData, code, dateStr);
                 }}
             }});
         }}
