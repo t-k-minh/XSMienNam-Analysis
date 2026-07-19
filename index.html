@@ -385,8 +385,13 @@ function renderAnalysis() {
     const monday = new Date(latest);
     monday.setDate(monday.getDate() - ((latestDayOfWeek + 6) % 7) + weekOffset * 7);
 
+    // Helper: format Date to YYYY-MM-DD without timezone issues
+    function fmtDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
     let weekHtml = '';
-    let weekInfo = '<b>Tuần ' + fmtD(monday.toISOString().split('T')[0]) + ' - ';
+    let weekInfo = '<b>Tuần ' + fmtD(fmtDate(monday)) + ' - ';
 
     // Show 7 days
     for (let i = 0; i < 7; i++) {
