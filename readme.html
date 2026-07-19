@@ -345,12 +345,18 @@ function renderAnalysis() {
 
     const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    // Calculate start of week (Monday)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay();
-    const monday = new Date(today);
-    monday.setDate(monday.getDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
+    // Helper: parse date string to local Date object
+    function parseLocalDate(dateStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+
+    // Calculate start of week (Monday) from latest date in data
+    const latestDate = ALL_DATES[ALL_DATES.length - 1];
+    const latest = parseLocalDate(latestDate);
+    const latestDayOfWeek = latest.getDay();
+    const monday = new Date(latest);
+    monday.setDate(monday.getDate() - ((latestDayOfWeek + 6) % 7) + weekOffset * 7);
 
     let weekHtml = '';
     let weekInfo = '<b>Tuần ' + fmtD(monday.toISOString().split('T')[0]) + ' - ';
@@ -359,7 +365,8 @@ function renderAnalysis() {
     for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
         d.setDate(d.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        // Format as YYYY-MM-DD without timezone issues
+        const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         const dow = d.getDay();
         const provCodes = SCHEDULE[dow] || [];
         const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
