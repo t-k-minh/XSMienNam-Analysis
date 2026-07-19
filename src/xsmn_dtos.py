@@ -9,11 +9,11 @@ class XSMNResult(BaseModel):
     date: date
     province: str
 
-    special: int  # Giải đặc biệt (6 số)
+    special: str = '0'  # Giải đặc biệt (6 số) - string để giữ số 0
 
-    prize1: int  # Giải nhất (5 số)
+    prize1: str = '0'  # Giải nhất (5 số) - string để giữ số 0
 
-    prize2: int  # Giải nhì (5 số)
+    prize2: str = '0'  # Giải nhì (5 số) - string để giữ số 0
 
     prize3_1: int
     prize3_2: int
