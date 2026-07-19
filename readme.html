@@ -109,16 +109,15 @@
     </div>
 
     <div class="card">
-        <h2>Phân tích dự đoán</h2>
+        <h2>Phân tích dự đoán tuần</h2>
         <div class="date-nav">
-            <button class="btn-nav" id="btnPrevAnalysis" onclick="prevAnalysisDay()">&#9664;</button>
-            <div class="date" id="analysisDate"></div>
-            <button class="btn-nav" id="btnNextAnalysis" onclick="nextAnalysisDay()">&#9654;</button>
+            <button class="btn-nav" onclick="prevWeek()">&#9664; Tuần trước</button>
+            <button class="btn-nav" onclick="nextWeek()">Tuần sau &#9654;</button>
         </div>
-        <div class="prov-info" id="todayProvinces"></div>
+        <div class="prov-info" id="weekInfo"></div>
 
-        <!-- PREDICTIONS -->
-        <div id="predTodaySection"></div>
+        <!-- 7 DAYS PREDICTIONS -->
+        <div id="weekPredictions"></div>
 
         <!-- BACKTEST -->
         <div style="margin-top:24px; padding-top:20px; border-top: 2px solid #eee;">
@@ -297,30 +296,89 @@ function filterByNum(num, el) { document.querySelectorAll('#resultFilter .btn-nu
 function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }
 
 // ===== ANALYSIS SECTION =====
-function prevAnalysisDay() { if (analysisDateIdx > 0) { analysisDateIdx--; renderAnalysis(); } }
-function nextAnalysisDay() { if (analysisDateIdx < ALL_DATES.length - 1) { analysisDateIdx++; renderAnalysis(); } }
+let weekOffset = 0; // 0 = this week, 1 = next week, etc.
+
+function prevWeek() { weekOffset--; renderAnalysis(); }
+function nextWeek() { weekOffset++; renderAnalysis(); }
 
 function renderAnalysis() {
-    const date = ALL_DATES[analysisDateIdx];
-    document.getElementById('analysisDate').textContent = fmtD(date);
-    document.getElementById('btnPrevAnalysis').disabled = analysisDateIdx === 0;
-    document.getElementById('btnNextAnalysis').disabled = analysisDateIdx >= ALL_DATES.length - 1;
+    const SCHEDULE = {
+        0: ['TGI', 'KG', 'DL'],       // Sunday
+        1: ['TTP', 'DT', 'CM'],        // Monday
+        2: ['BTR', 'VT', 'BL'],        // Tuesday
+        3: ['DNA', 'CT', 'ST'],        // Wednesday
+        4: ['TNI', 'AG', 'BTH'],       // Thursday
+        5: ['VL', 'BD', 'TV'],         // Friday
+        6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
+    };
 
-    const dayData = DATA.filter(d => d.date === date);
+    const PROVINCE_MAP = {
+        'TTP': 'TP. Hồ Chí Minh', 'HCM': 'TP. Hồ Chí Minh',
+        'DT': 'Đồng Tháp', 'CM': 'Cà Mau', 'BTR': 'Bến Tre',
+        'VT': 'Vũng Tàu', 'BL': 'Bạc Liêu', 'DNA': 'Đồng Nai',
+        'CT': 'Cần Thơ', 'ST': 'Sóc Trăng', 'TNI': 'Tây Ninh',
+        'AG': 'An Giang', 'BTH': 'Bình Thuận', 'VL': 'Vĩnh Long',
+        'BD': 'Bình Dương', 'TV': 'Trà Vinh', 'LA': 'Long An',
+        'BP': 'Bình Phước', 'HGG': 'Hậu Giang', 'TGI': 'Tiền Giang',
+        'KG': 'Kiên Giang', 'DL': 'Đà Lạt'
+    };
 
-    // Get province names for this date
-    const provNames = dayData.map(d => d.province_name).join(', ') || 'Không có';
-    document.getElementById('todayProvinces').innerHTML = '<b>' + fmtD(date) + ':</b> ' + provNames;
+    const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    // Render predictions for this day
-    let html = '<div class="three-col">';
-    dayData.forEach(d => {
-        const histData = DATA.filter(x => x.province === d.province);
-        html += renderProvCard(d.province_name, histData, d.province);
-    });
-    html += '</div>';
+    // Calculate start of week (Monday)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(monday.getDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
 
-    document.getElementById('predTodaySection').innerHTML = html;
+    let weekHtml = '';
+    let weekInfo = '<b>Tuần ' + fmtD(monday.toISOString().split('T')[0]) + ' - ';
+
+    // Show 7 days
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dow = d.getDay();
+        const provCodes = SCHEDULE[dow] || [];
+        const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
+
+        if (i === 6) {
+            weekInfo += fmtD(dateStr);
+        }
+
+        // Check if we have actual data
+        const dayData = DATA.filter(dd => dd.date === dateStr);
+
+        weekHtml += '<div style="margin-bottom:20px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">';
+        weekHtml += '<h3 style="color:#1a5276;margin-bottom:12px;font-size:15px;display:flex;align-items:center;gap:8px">';
+        weekHtml += '<span style="background:#2e86c1;color:white;padding:4px 10px;border-radius:6px;font-size:13px">' + DAY_NAMES[dow] + '</span>';
+        weekHtml += fmtD(dateStr) + ' - ' + provNames.join(', ');
+        weekHtml += '</h3>';
+        weekHtml += '<div class="three-col">';
+
+        if (dayData.length > 0) {
+            dayData.forEach(d => {
+                const histData = DATA.filter(x => x.province === d.province);
+                weekHtml += renderProvCard(d.province_name, histData, d.province);
+            });
+        } else {
+            provCodes.forEach(code => {
+                const provName = PROVINCE_MAP[code] || code;
+                const histData = DATA.filter(x => x.province === code);
+                if (histData.length > 0) {
+                    weekHtml += renderProvCard(provName, histData, code);
+                }
+            });
+        }
+
+        weekHtml += '</div></div>';
+    }
+
+    weekInfo += '</b>';
+    document.getElementById('weekInfo').innerHTML = weekInfo;
+    document.getElementById('weekPredictions').innerHTML = weekHtml;
 }
 
 // ===== BACKTEST =====
