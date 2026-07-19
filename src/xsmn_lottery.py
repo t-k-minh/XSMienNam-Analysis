@@ -205,12 +205,12 @@ class XSMNLottery:
                 elif row_idx == 6:  # Giải 3 (2×3)
                     prizes['prize3_1'] = numbers[0] if len(numbers) > 0 else 0
                     prizes['prize3_2'] = numbers[1] if len(numbers) > 1 else 0
-                elif row_idx == 7:  # Giải 2
-                    prizes['prize2'] = numbers[0] if numbers else 0
-                elif row_idx == 8:  # Giải 1
-                    prizes['prize1'] = numbers[0] if numbers else 0
-                elif row_idx == 9:  # Đặc biệt
-                    prizes['special'] = numbers[0] if numbers else 0
+                elif row_idx == 7:  # Giải 2 - keep as string for leading zeros
+                    prizes['prize2'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
+                elif row_idx == 8:  # Giải 1 - keep as string for leading zeros
+                    prizes['prize1'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
+                elif row_idx == 9:  # Đặc biệt - keep as string for leading zeros
+                    prizes['special'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
 
             # Map to XSMNResult format
             return XSMNResult(
