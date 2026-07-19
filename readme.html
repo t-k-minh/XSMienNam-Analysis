@@ -217,17 +217,42 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) 
 
     let html = '<div class="prov-card"><h3>' + provName + ' (' + r.total + ' kỳ)</h3>';
 
-    // ENSEMBLE PREDICTION (Thompson + Statistical)
+    // ENSEMBLE PREDICTION (Thompson + Statistical) with weighted scoring
     const thompsonPred = thompsonPredict(histData);
     const statPred = new Set(r.sorted.slice(0,6).map(([n])=>n));
-    const votes = {};
-    thompsonPred.forEach(n => { votes[n] = (votes[n] || 0) + 1; });
-    statPred.forEach(n => { votes[n] = (votes[n] || 0) + 1; });
-    const ensembleTop6 = Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n));
+
+    // Calculate weighted scores: Thompson 40% + Statistical 60%
+    const ensembleScores = {};
+    for (let i = 0; i < 100; i++) {
+        ensembleScores[i] = 0;
+    }
+
+    // Thompson contribution (40%)
+    const alpha = new Array(100).fill(1);
+    histData.forEach(d => {
+        for (let k in d) {
+            if ((k.startsWith('prize') || k === 'special') && d[k]) {
+                const n = parseInt(String(d[k]).slice(-2));
+                if (!isNaN(n)) alpha[n]++;
+            }
+        }
+    });
+    for (let i = 0; i < 100; i++) {
+        ensembleScores[i] += (alpha[i] / (alpha[i] + 1)) * 0.4;
+    }
+
+    // Statistical contribution (60%)
+    r.sorted.forEach(([n, score], idx) => {
+        ensembleScores[n] += (1 - idx/r.sorted.length) * 0.6;
+    });
+
+    // Get top 6
+    const ensembleSorted = Object.entries(ensembleScores).sort((a,b) => b[1] - a[1]);
+    const ensembleTop6 = ensembleSorted.slice(0, 6).map(([n]) => parseInt(n));
     const ensembleStr = ensembleTop6.map(n => String(n).padStart(2, '0')).join(' - ');
 
     // Show prediction
-    html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson + Statistical</small></div>';
+    html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson (40%) + Statistical (60%)</small></div>';
 
     // Show actual result and comparison ONLY if we have real data (not 0 or empty)
     if (actualResult !== undefined && actualResult !== null && actualResult !== 0 && actualResult !== '') {
