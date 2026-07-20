@@ -189,7 +189,7 @@ function calcScores(data) {
     const dates = [...new Set(data.map(d => d.date))].sort();
     const total = dates.length;
     const freq = {}, ls = {}; for(let i=0;i<100;i++) {freq[i]=0;ls[i]=-1;}
-    data.forEach((d,idx) => { for(let k in d) { if(k.startsWith('prize')||k==='special') { const val = d[k]; if(val !== null && val !== '' && val !== 0) { const n = parseInt(String(val).slice(-2)); if(!isNaN(n)) { freq[n]++; ls[n]=idx; } } } });
+    data.forEach((d,idx) => { for(let k in d) { if(k.startsWith('prize')||k==='special') { const val = d[k]; if(val !== null && val !== '' && val !== 0) { const n = parseInt(String(val).slice(-2)); if(!isNaN(n)) { freq[n]++; ls[n]=idx; } } } } });
     const scores = {};
     for(let i=0;i<100;i++) {
         const fs = freq[i]/(total*0.2);
