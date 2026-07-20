@@ -338,7 +338,7 @@ function renderResultTable() {
     const dayData = DATA.filter(d => d.date === date);
     if (dayData.length === 0) return;
     let headerHtml = '<tr><th>Giải</th>';
-    dayData.forEach(d => { headerHtml += '<th>' + d.province_name + '</th>'; });
+    dayData.forEach(d => { headerHtml += '<th>' + pn(d.province) + '</th>'; });
     headerHtml += '</tr>';
     document.getElementById('resultHead').innerHTML = headerHtml;
     const prizeRows = [['Tám','prize8'],['Bảy','prize7'],['Sáu 1','prize6_1'],['Sáu 2','prize6_2'],['Sáu 3','prize6_3'],['Năm','prize5'],['Tư 1','prize4_1'],['Tư 2','prize4_2'],['Tư 3','prize4_3'],['Tư 4','prize4_4'],['Ba 1','prize3_1'],['Ba 2','prize3_2'],['Nhì','prize2'],['Nhất','prize1'],['Đặc biệt','special']];

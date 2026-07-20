@@ -680,6 +680,14 @@ function runBacktest() {{
 
 def generate_readme_md(lottery: XSMNLottery):
     """Generate README.md with XSMN data in Markdown format."""
+    # Skip if a detailed README already exists (has more than basic stats)
+    readme = Path('README.md')
+    if readme.exists():
+        content = readme.read_text(encoding='utf-8')
+        if '## Tinh nang' in content or '## Features' in content or '## Cong nghe' in content or '## Technology' in content:
+            print('Detailed README.md exists, skipping auto-generation')
+            return
+
     from datetime import timedelta
     from collections import Counter
 
