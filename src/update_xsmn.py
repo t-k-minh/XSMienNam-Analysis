@@ -584,7 +584,6 @@ function runBacktest() {{
                     ensembleScores[n] += (1 - idx/r.sorted.length) * 0.6;
                 }});
                 const predicted = new Set(Object.entries(ensembleScores).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
-                const predicted = new Set(Object.entries(votes).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
 
                 // Chi lay 2 so cuoi GIAI DAC BIET
                 const actual = provData[i];
