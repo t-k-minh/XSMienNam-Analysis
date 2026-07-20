@@ -58,7 +58,11 @@ def generate_html(lottery: XSMNLottery):
                 rec[col] = str(val) if isinstance(val, str) else int(val)
         records.append(rec)
 
-    data_json = json.dumps(records, ensure_ascii=False)
+    # Save data to separate JSON file for loading via fetch
+    data_path = Path('data/xsmn_web.json')
+    data_path.write_text(json.dumps(records, ensure_ascii=False), encoding='utf-8')
+    print(f'Saved data to {data_path}')
+
     provinces = sorted(df['province'].unique().tolist())
 
     html = f'''<!DOCTYPE html>
@@ -196,8 +200,27 @@ def generate_html(lottery: XSMNLottery):
 </div>
 
 <script>
-const DATA = {data_json};
-const ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
+let DATA = [];
+let ALL_DATES = [];
+
+// Load data from JSON file
+async function loadData() {{
+    try {{
+        const response = await fetch('data/xsmn_web.json');
+        DATA = await response.json();
+        ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
+        document.getElementById('resultDate').textContent = 'Dang tai du lieu...';
+        renderResultTable();
+        renderAnalysis();
+        runBacktest();
+    }} catch(e) {{
+        console.error('Error loading data:', e);
+        document.getElementById('resultDate').textContent = 'Loi tai du lieu: ' + e.message;
+    }}
+}}
+
+// Load data on page load
+loadData();
 
 let resultDateIdx = ALL_DATES.length - 1;
 let analysisDateIdx = ALL_DATES.length - 1;
@@ -640,16 +663,6 @@ function runBacktest() {{
     html += '</div>';
 
     resultDiv.innerHTML = html;
-}}
-
-// Init
-try {{
-    renderResultTable();
-    renderAnalysis();
-    runBacktest();
-}} catch(e) {{
-    console.error('Init error:', e);
-    document.getElementById('resultDate').textContent = 'Error: ' + e.message;
 }}
 </script>
 </body>
