@@ -213,7 +213,7 @@ function thompsonPredict(data) {
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }
 
-function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) {
+function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecord) {
     // If cutoffDate provided, only use data before that date
     if (cutoffDate) {
         histData = histData.filter(d => d.date < cutoffDate);
@@ -267,17 +267,34 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) 
     // Show prediction
     html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson (40%) + Statistical (60%)</small></div>';
 
-    // Show actual result and comparison ONLY if we have real data (not 0 or empty)
-    if (actualResult !== undefined && actualResult !== null && actualResult !== 0 && actualResult !== '') {
-        const actualNum = parseInt(String(actualResult).slice(-2));
-        if (!isNaN(actualNum) && actualNum > 0) {
-            const isHit = ensembleTop6.includes(actualNum);
-            const hitStyle = isHit ? 'background:#27ae60' : 'background:#e74c3c';
-            html += '<div style="padding:8px;border-radius:8px;margin-top:8px;text-align:center;font-size:12px">';
-            html += '<span style="color:#666">Kết quả thực: </span>';
-            html += '<span style="font-weight:bold;font-size:14px">' + String(actualNum).padStart(2, '0') + '</span>';
-            html += ' <span style="' + hitStyle + ';color:white;padding:2px 8px;border-radius:4px;font-size:11px">' + (isHit ? 'TRÚNG' : 'SAI') + '</span>';
+    // Show hits across ALL prize levels
+    if (actualDayRecord && actualDayRecord !== null) {
+        const { tails: dayTails } = getDayTails(actualDayRecord);
+        const dbVal = actualDayRecord.special ? parseInt(String(actualDayRecord.special).slice(-2)) : null;
+        const hits = [];
+        ensembleTop6.forEach(num => {
+            const hitPrizes = [];
+            for (const [k, v] of Object.entries(dayTails)) {
+                if (v === num) hitPrizes.push(PRIZE_LABELS[k] || k);
+            }
+            if (hitPrizes.length > 0) hits.push({ num, prizes: hitPrizes });
+        });
+        if (dbVal !== null && !isNaN(dbVal)) {
+            const dbHit = ensembleTop6.includes(dbVal);
+            const dbStyle = dbHit ? 'background:#27ae60' : 'background:#e74c3c';
+            html += '<div style="padding:6px 8px;margin-top:8px;text-align:center;font-size:12px">';
+            html += '<span style="color:#666">DB: </span>';
+            html += '<span style="font-weight:bold;font-size:14px">' + String(dbVal).padStart(2, '0') + '</span>';
+            html += ' <span style="' + dbStyle + ';color:white;padding:2px 6px;border-radius:4px;font-size:10px">' + (dbHit ? 'TRUNG' : 'SAI') + '</span>';
             html += '</div>';
+        }
+        if (hits.length > 0) {
+            html += '<div style="padding:6px 8px;text-align:center;font-size:11px;color:#155724;background:#d4edda;border-radius:6px;margin-top:4px">';
+            html += '<b>Trung ' + hits.length + '/6:</b> ';
+            html += hits.map(h => '<span style="font-weight:bold">' + String(h.num).padStart(2,'0') + '</span> <span style="color:#666;font-size:10px">(' + h.prizes.join('+') + ')</span>').join(', ');
+            html += '</div>';
+        } else if (dbVal !== null) {
+            html += '<div style="padding:4px 8px;text-align:center;font-size:11px;color:#856404;background:#fff3cd;border-radius:6px;margin-top:4px">Khong trung so nao trong cac giai</div>';
         }
     }
 
@@ -375,6 +392,26 @@ const PROVINCE_MAP = {
     'HGG':'Hau Giang','TGI':'Tien Giang','KG':'Kien Giang','DL':'Da Lat'
 };
 function pn(code) { return PROVINCE_MAP[code] || code; }
+
+const PRIZE_LABELS = {
+    'prize8':'G8','prize7':'G7','prize6_1':'G6.1','prize6_2':'G6.2','prize6_3':'G6.3',
+    'prize5':'G5','prize4_1':'G4.1','prize4_2':'G4.2','prize4_3':'G4.3','prize4_4':'G4.4',
+    'prize3_1':'G3.1','prize3_2':'G3.2','prize2':'G2','prize1':'G1','special':'DB'
+};
+function getDayTails(rec) {
+    const tails = {};
+    const allTails = new Set();
+    for (const k in rec) {
+        if (k.startsWith('prize') || k === 'special') {
+            const val = rec[k];
+            if (val !== null && val !== '' && val !== 0) {
+                const n = parseInt(String(val).slice(-2));
+                if (!isNaN(n)) { tails[k] = n; allTails.add(n); }
+            }
+        }
+    }
+    return { tails, allTails };
+}
 
 // ===== ANALYSIS (predictions) =====
 
