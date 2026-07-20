@@ -176,14 +176,15 @@ def generate_html(lottery: XSMNLottery):
     </div>
 
     <div class="card">
-        <h2>Phân tích dự đoán tuần</h2>
+        <h2>Phân tích dự đoán ngày</h2>
         <div class="date-nav">
-            <button class="btn-nav" onclick="prevWeek()">&#9664; Tuần trước</button>
-            <button class="btn-nav" onclick="nextWeek()">Tuần sau &#9654;</button>
+            <button class="btn-nav" id="btnAnalysisPrev" onclick="prevDay()">&#9664;</button>
+            <div class="date" id="analysisDate"></div>
+            <button class="btn-nav" id="btnAnalysisNext" onclick="nextDay()">&#9654;</button>
         </div>
         <div class="prov-info" id="weekInfo"></div>
 
-        <!-- 7 DAYS PREDICTIONS -->
+        <!-- SINGLE DAY PREDICTIONS -->
         <div id="weekPredictions"></div>
 
         <!-- BACKTEST -->
@@ -431,10 +432,10 @@ function filterByNum(num, el) {{ document.querySelectorAll('#resultFilter .btn-n
 function clearHighlight() {{ selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }}
 
 // ===== ANALYSIS SECTION =====
-let weekOffset = 0; // 0 = this week, 1 = next week, etc.
+let dayOffset = 0;
 
-function prevWeek() {{ weekOffset--; renderAnalysis(); }}
-function nextWeek() {{ weekOffset++; renderAnalysis(); }}
+function prevDay() {{ dayOffset--; renderAnalysis(); }}
+function nextDay() {{ dayOffset++; renderAnalysis(); }}
 
 function renderAnalysis() {{
     const SCHEDULE = {{
@@ -448,84 +449,77 @@ function renderAnalysis() {{
     }};
 
     const PROVINCE_MAP = {{
-        'TTP': 'TP. Hồ Chí Minh', 'HCM': 'TP. Hồ Chí Minh',
-        'DT': 'Đồng Tháp', 'CM': 'Cà Mau', 'BTR': 'Bến Tre',
-        'VT': 'Vũng Tàu', 'BL': 'Bạc Liêu', 'DNA': 'Đồng Nai',
-        'CT': 'Cần Thơ', 'ST': 'Sóc Trăng', 'TNI': 'Tây Ninh',
-        'AG': 'An Giang', 'BTH': 'Bình Thuận', 'VL': 'Vĩnh Long',
-        'BD': 'Bình Dương', 'TV': 'Trà Vinh', 'LA': 'Long An',
-        'BP': 'Bình Phước', 'HGG': 'Hậu Giang', 'TGI': 'Tiền Giang',
-        'KG': 'Kiên Giang', 'DL': 'Đà Lạt'
+        'TTP': 'TP. Ho Chi Minh', 'HCM': 'TP. Ho Chi Minh',
+        'DT': 'Dong Thap', 'CM': 'Ca Mau', 'BTR': 'Ben Tre',
+        'VT': 'Vung Tau', 'BL': 'Bac Lieu', 'DNA': 'Dong Nai',
+        'CT': 'Can Tho', 'ST': 'Soc Trang', 'TNI': 'Tay Ninh',
+        'AG': 'An Giang', 'BTH': 'Binh Thuan', 'VL': 'Vinh Long',
+        'BD': 'Binh Duong', 'TV': 'Tra Vinh', 'LA': 'Long An',
+        'BP': 'Binh Phuoc', 'HGG': 'Hau Giang', 'TGI': 'Tien Giang',
+        'KG': 'Kien Giang', 'DL': 'Da Lat'
     }};
 
     const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    // Helper: parse date string to local Date object
     function parseLocalDate(dateStr) {{
         const [y, m, d] = dateStr.split('-').map(Number);
         return new Date(y, m - 1, d);
     }}
 
-    // Calculate start of week (Monday) from latest date in data
-    const latestDate = ALL_DATES[ALL_DATES.length - 1];
-    const latest = parseLocalDate(latestDate);
-    const latestDayOfWeek = latest.getDay();
-    const monday = new Date(latest);
-    monday.setDate(monday.getDate() - ((latestDayOfWeek + 6) % 7) + weekOffset * 7);
-
-    // Helper: format Date to YYYY-MM-DD without timezone issues
     function fmtDate(d) {{
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }}
 
-    let weekHtml = '';
-    let weekInfo = '<b>Tuần ' + fmtD(fmtDate(monday)) + ' - ';
+    // Get today in VN timezone (UTC+7)
+    const nowUTC = new Date();
+    const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
+    const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
 
-    // Show 7 days
-    for (let i = 0; i < 7; i++) {{
-        const d = new Date(monday);
-        d.setDate(d.getDate() + i);
-        // Format as YYYY-MM-DD without timezone issues
-        const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        const dow = d.getDay();
-        const provCodes = SCHEDULE[dow] || [];
-        const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
+    // Default: show the latest data date on first load
+    const latestDate = ALL_DATES[ALL_DATES.length - 1];
+    const analysisTarget = parseLocalDate(latestDate);
+    analysisTarget.setDate(analysisTarget.getDate() + dayOffset);
 
-        if (i === 6) {{
-            weekInfo += fmtD(dateStr);
-        }}
+    const dateStr = fmtDate(analysisTarget);
+    const dow = analysisTarget.getDay();
+    const provCodes = SCHEDULE[dow] || [];
+    const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
 
-        // Check if we have actual data
-        const dayData = DATA.filter(dd => dd.date === dateStr);
+    // Update date display
+    const isToday = dateStr === todayStr;
+    const dateLabel = DAY_NAMES[dow] + ' ' + fmtD(dateStr) + (isToday ? ' (Hom nay)' : '');
+    document.getElementById('analysisDate').textContent = dateLabel;
 
-        weekHtml += '<div style="margin-bottom:20px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">';
-        weekHtml += '<h3 style="color:#1a5276;margin-bottom:12px;font-size:15px;display:flex;align-items:center;gap:8px">';
-        weekHtml += '<span style="background:#2e86c1;color:white;padding:4px 10px;border-radius:6px;font-size:13px">' + DAY_NAMES[dow] + '</span>';
-        weekHtml += fmtD(dateStr) + ' - ' + provNames.join(', ');
-        weekHtml += '</h3>';
-        weekHtml += '<div class="three-col">';
+    // Disable buttons at limits
+    document.getElementById('btnAnalysisPrev').disabled = dayOffset <= -ALL_DATES.length + 1;
+    document.getElementById('btnAnalysisNext').disabled = dayOffset >= 0;
 
-        if (dayData.length > 0) {{
-            dayData.forEach(d => {{
-                const histData = DATA.filter(x => x.province === d.province);
-                weekHtml += renderProvCard(d.province_name, histData, d.province, dateStr, d.special);
-            }});
-        }} else {{
-            provCodes.forEach(code => {{
-                const provName = PROVINCE_MAP[code] || code;
-                const histData = DATA.filter(x => x.province === code);
-                if (histData.length > 0) {{
-                    weekHtml += renderProvCard(provName, histData, code, dateStr, null);
-                }}
-            }});
-        }}
+    // Info bar
+    let info = '<b>' + provNames.join(', ') + '</b>';
+    document.getElementById('weekInfo').innerHTML = info;
 
-        weekHtml += '</div></div>';
+    // Day content
+    let dayHtml = '<div style="padding:10px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">';
+    dayHtml += '<div class="three-col">';
+
+    const dayData = DATA.filter(dd => dd.date === dateStr);
+    if (dayData.length > 0) {{
+        dayData.forEach(d => {{
+            const histData = DATA.filter(x => x.province === d.province);
+            dayHtml += renderProvCard(d.province_name, histData, d.province, dateStr, d.special);
+        }});
+    }} else {{
+        provCodes.forEach(code => {{
+            const provName = PROVINCE_MAP[code] || code;
+            const histData = DATA.filter(x => x.province === code);
+            if (histData.length > 0) {{
+                dayHtml += renderProvCard(provName, histData, code, dateStr, null);
+            }}
+        }});
     }}
 
-    weekInfo += '</b>';
-    document.getElementById('weekInfo').innerHTML = weekInfo;
-    document.getElementById('weekPredictions').innerHTML = weekHtml;
+    dayHtml += '</div></div>';
+    document.getElementById('weekPredictions').innerHTML = dayHtml;
 }}
 
 // ===== BACKTEST =====
