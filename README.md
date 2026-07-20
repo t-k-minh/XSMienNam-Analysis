@@ -28,7 +28,7 @@ Dự đoán top 6 số dựa trên weighted scoring:
 
 | Thành phần | Trọng số | Mô tả |
 |---|---|---|
-| **Thompson Sampling** | 40% | Mô hình xác suất贝叶esian, cập nhật theo lịch sử |
+| **Thompson Sampling** | 40% | Mô hình xác suất Bayesian, cập nhật theo lịch sử |
 | **Statistical** | 60% | Kết hợp tần suất + số ngày chưa ra |
 
 Kiểm tra kết quả ở **tất cả 15 giải** (G8 → Đặc Biệt), không chỉ giải ĐB.
