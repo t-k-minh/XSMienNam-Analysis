@@ -171,7 +171,7 @@ class XSMNLottery:
             # Row mapping based on actual structure:
             # Row 1: Giải 8 (2 số)
             # Row 2: Giải 7 (3 số)
-            # Row 3: Giải 6 (3×3 số)
+            # Row 3: Giải 6 (3×4 số)
             # Row 4: Giải 5 (4 số)
             # Row 5: Giải 4 (7 số)
             # Row 6: Giải 3 (2×3 số)
