@@ -336,7 +336,7 @@ function renderResultTable() {
     const dayData = DATA.filter(d => d.date === date);
     if (dayData.length === 0) return;
     let headerHtml = '<tr><th>Giải</th>';
-    dayData.forEach(d => { headerHtml += '<th>' + d.province_name + '</th>'; });
+    dayData.forEach(d => { headerHtml += '<th>' + provName(d.province) + '</th>'; });
     headerHtml += '</tr>';
     document.getElementById('resultHead').innerHTML = headerHtml;
     const prizeRows = [['Tám','prize8'],['Bảy','prize7'],['Sáu 1','prize6_1'],['Sáu 2','prize6_2'],['Sáu 3','prize6_3'],['Năm','prize5'],['Tư 1','prize4_1'],['Tư 2','prize4_2'],['Tư 3','prize4_3'],['Tư 4','prize4_4'],['Ba 1','prize3_1'],['Ba 2','prize3_2'],['Nhì','prize2'],['Nhất','prize1'],['Đặc biệt','special']];
@@ -364,6 +364,19 @@ function setFilterType(type, el) { document.querySelectorAll('#resultFilter .btn
 function filterByNum(num, el) { document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); if (filterDigit === num) { filterDigit = null; } else { filterDigit = num; el.classList.add('active'); } renderResultTable(); }
 function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }
 
+// ===== PROVINCE MAP (global) =====
+const PROVINCE_MAP = {
+    'TTP': 'TP. Ho Chi Minh', 'HCM': 'TP. Ho Chi Minh',
+    'DT': 'Dong Thap', 'CM': 'Ca Mau', 'BTR': 'Ben Tre',
+    'VT': 'Vung Tau', 'BL': 'Bac Lieu', 'DNA': 'Dong Nai',
+    'CT': 'Can Tho', 'ST': 'Soc Trang', 'TNI': 'Tay Ninh',
+    'AG': 'An Giang', 'BTH': 'Binh Thuan', 'VL': 'Vinh Long',
+    'BD': 'Binh Duong', 'TV': 'Tra Vinh', 'LA': 'Long An',
+    'BP': 'Binh Phuoc', 'HGG': 'Hau Giang', 'TGI': 'Tien Giang',
+    'KG': 'Kien Giang', 'DL': 'Da Lat'
+};
+function provName(code) { return PROVINCE_MAP[code] || code; }
+
 // ===== ANALYSIS SECTION =====
 let dayOffset = 0;
 
@@ -379,17 +392,6 @@ function renderAnalysis() {
         4: ['TNI', 'AG', 'BTH'],       // Thursday
         5: ['VL', 'BD', 'TV'],         // Friday
         6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
-    };
-
-    const PROVINCE_MAP = {
-        'TTP': 'TP. Ho Chi Minh', 'HCM': 'TP. Ho Chi Minh',
-        'DT': 'Dong Thap', 'CM': 'Ca Mau', 'BTR': 'Ben Tre',
-        'VT': 'Vung Tau', 'BL': 'Bac Lieu', 'DNA': 'Dong Nai',
-        'CT': 'Can Tho', 'ST': 'Soc Trang', 'TNI': 'Tay Ninh',
-        'AG': 'An Giang', 'BTH': 'Binh Thuan', 'VL': 'Vinh Long',
-        'BD': 'Binh Duong', 'TV': 'Tra Vinh', 'LA': 'Long An',
-        'BP': 'Binh Phuoc', 'HGG': 'Hau Giang', 'TGI': 'Tien Giang',
-        'KG': 'Kien Giang', 'DL': 'Da Lat'
     };
 
     const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -444,10 +446,10 @@ function renderAnalysis() {
         });
     } else {
         provCodes.forEach(code => {
-            const provName = PROVINCE_MAP[code] || code;
+            const pName = PROVINCE_MAP[code] || code;
             const histData = DATA.filter(x => x.province === code);
             if (histData.length > 0) {
-                dayHtml += renderProvCard(provName, histData, code, dateStr, null);
+                dayHtml += renderProvCard(pName, histData, code, dateStr, null);
             }
         });
     }
