@@ -643,9 +643,14 @@ function runBacktest() {{
 }}
 
 // Init
-renderResultTable();
-renderAnalysis();
-runBacktest();
+try {{
+    renderResultTable();
+    renderAnalysis();
+    runBacktest();
+}} catch(e) {{
+    console.error('Init error:', e);
+    document.body.innerHTML = '<pre>Error: ' + e.message + '\n' + e.stack + '</pre>';
+}}
 </script>
 </body>
 </html>'''
