@@ -412,9 +412,7 @@ function renderAnalysis() {
     document.getElementById('weekPredictions').innerHTML = dayHtml;
 }
 
-function renderAll() { renderAll(); }
-
-let dayOffset = 0;
+function renderAll() { renderResultTable(); renderAnalysis(); }
 
 // ===== BACKTEST =====
 function runBacktest() {
