@@ -649,7 +649,7 @@ try {{
     runBacktest();
 }} catch(e) {{
     console.error('Init error:', e);
-    document.body.innerHTML = '<pre>Error: ' + e.message + '\n' + e.stack + '</pre>';
+    document.getElementById('resultDate').textContent = 'Error: ' + e.message;
 }}
 </script>
 </body>
