@@ -55,7 +55,7 @@ def generate_html(lottery: XSMNLottery):
         for col in df.columns:
             if col.startswith('prize') or col == 'special':
                 val = row[col]
-                rec[col] = str(val) if isinstance(val, str) else int(val)
+                rec[col] = str(val)
         records.append(rec)
 
     # Save data to separate JSON file for loading via fetch

@@ -89,6 +89,10 @@ class XSMNLottery:
             records = json.load(f)
         for rec in records:
             rec['date'] = date.fromisoformat(rec['date'])
+            # Coerce any remaining int values to str for leading zeros
+            for key in rec:
+                if key not in ('date', 'province', 'province_name') and isinstance(rec[key], int):
+                    rec[key] = str(rec[key])
             result = XSMNResult(**rec)
             self._data[(result.date, result.province)] = result
         self.generate_dataframe()
@@ -184,7 +188,8 @@ class XSMNLottery:
 
                 # Get all numbers from this cell
                 cell_text = cells[col_idx].text.strip()
-                numbers = [int(x) for x in cell_text.split() if x.isdigit()]
+                numbers_str = [x for x in cell_text.split() if x.isdigit()]
+                numbers = [int(x) for x in numbers_str]
 
                 if not numbers:
                     continue
@@ -193,18 +198,18 @@ class XSMNLottery:
                     prizes['prize8'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
                 elif row_idx == 2:  # Giải 7 - keep as string for leading zeros
                     prizes['prize7'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
-                elif row_idx == 3:  # Giải 6 (3×3)
-                    prizes['prize6_1'] = numbers[0] if len(numbers) > 0 else 0
-                    prizes['prize6_2'] = numbers[1] if len(numbers) > 1 else 0
-                    prizes['prize6_3'] = numbers[2] if len(numbers) > 2 else 0
+                elif row_idx == 3:  # Giải 6 (3×3) - keep as string
+                    prizes['prize6_1'] = numbers_str[0] if len(numbers_str) > 0 else '0'
+                    prizes['prize6_2'] = numbers_str[1] if len(numbers_str) > 1 else '0'
+                    prizes['prize6_3'] = numbers_str[2] if len(numbers_str) > 2 else '0'
                 elif row_idx == 4:  # Giải 5 - keep as string
                     prizes['prize5'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
-                elif row_idx == 5:  # Giải 4 (7 số)
-                    for i, num in enumerate(numbers[:7]):
-                        prizes[f'prize4_{i+1}'] = num
-                elif row_idx == 6:  # Giải 3 (2×3)
-                    prizes['prize3_1'] = numbers[0] if len(numbers) > 0 else 0
-                    prizes['prize3_2'] = numbers[1] if len(numbers) > 1 else 0
+                elif row_idx == 5:  # Giải 4 (7 số) - keep as string
+                    for i, num in enumerate(numbers_str[:7]):
+                        prizes[f'prize4_{i+1}'] = num if num else '0'
+                elif row_idx == 6:  # Giải 3 (2×3) - keep as string
+                    prizes['prize3_1'] = numbers_str[0] if len(numbers_str) > 0 else '0'
+                    prizes['prize3_2'] = numbers_str[1] if len(numbers_str) > 1 else '0'
                 elif row_idx == 7:  # Giải 2 - keep as string for leading zeros
                     prizes['prize2'] = cell_text.strip().replace(' ', '') if cell_text.strip() else '0'
                 elif row_idx == 8:  # Giải 1 - keep as string for leading zeros
@@ -216,19 +221,19 @@ class XSMNLottery:
             return XSMNResult(
                 date=selected_date,
                 province=province_code,
-                special=prizes.get('special', 0),
-                prize1=prizes.get('prize1', 0),
-                prize2=prizes.get('prize2', 0),
-                prize3_1=prizes.get('prize3_1', 0),
-                prize3_2=prizes.get('prize3_2', 0),
-                prize4_1=prizes.get('prize4_1', 0),
-                prize4_2=prizes.get('prize4_2', 0),
-                prize4_3=prizes.get('prize4_3', 0),
-                prize4_4=prizes.get('prize4_4', 0),
+                special=str(prizes.get('special', '0')),
+                prize1=str(prizes.get('prize1', '0')),
+                prize2=str(prizes.get('prize2', '0')),
+                prize3_1=str(prizes.get('prize3_1', '0')),
+                prize3_2=str(prizes.get('prize3_2', '0')),
+                prize4_1=str(prizes.get('prize4_1', '0')),
+                prize4_2=str(prizes.get('prize4_2', '0')),
+                prize4_3=str(prizes.get('prize4_3', '0')),
+                prize4_4=str(prizes.get('prize4_4', '0')),
                 prize5=str(prizes.get('prize5', '0')),
-                prize6_1=prizes.get('prize6_1', 0),
-                prize6_2=prizes.get('prize6_2', 0),
-                prize6_3=prizes.get('prize6_3', 0),
+                prize6_1=str(prizes.get('prize6_1', '0')),
+                prize6_2=str(prizes.get('prize6_2', '0')),
+                prize6_3=str(prizes.get('prize6_3', '0')),
                 prize7=str(prizes.get('prize7', '0')),
                 prize8=str(prizes.get('prize8', '0')),
             )
