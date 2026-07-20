@@ -206,6 +206,28 @@ function calcScores(data) {
 }
 function predTop6(sorted) { return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - '); }
 
+// Extract last 2 digits from ALL prize fields of a record
+function getDayTails(rec) {
+    const tails = {};  // {prizeName: last2digit}
+    const allTails = new Set();
+    for (const k in rec) {
+        if (k.startsWith('prize') || k === 'special') {
+            const val = rec[k];
+            if (val !== null && val !== '' && val !== 0) {
+                const n = parseInt(String(val).slice(-2));
+                if (!isNaN(n)) { tails[k] = n; allTails.add(n); }
+            }
+        }
+    }
+    return { tails, allTails };
+}
+
+const PRIZE_LABELS = {
+    'prize8': 'G8', 'prize7': 'G7', 'prize6_1': 'G6.1', 'prize6_2': 'G6.2', 'prize6_3': 'G6.3',
+    'prize5': 'G5', 'prize4_1': 'G4.1', 'prize4_2': 'G4.2', 'prize4_3': 'G4.3', 'prize4_4': 'G4.4',
+    'prize3_1': 'G3.1', 'prize3_2': 'G3.2', 'prize2': 'G2', 'prize1': 'G1', 'special': 'DB'
+};
+
 // Thompson Sampling prediction
 function thompsonPredict(data) {
     const alpha = new Array(100).fill(1);
@@ -222,7 +244,7 @@ function thompsonPredict(data) {
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }
 
-function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) {
+function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecord) {
     // If cutoffDate provided, only use data before that date
     if (cutoffDate) {
         histData = histData.filter(d => d.date < cutoffDate);
@@ -276,17 +298,40 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) 
     // Show prediction
     html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson (40%) + Statistical (60%)</small></div>';
 
-    // Show actual result and comparison ONLY if we have real data (not 0 or empty)
-    if (actualResult !== undefined && actualResult !== null && actualResult !== 0 && actualResult !== '') {
-        const actualNum = parseInt(String(actualResult).slice(-2));
-        if (!isNaN(actualNum) && actualNum > 0) {
-            const isHit = ensembleTop6.includes(actualNum);
-            const hitStyle = isHit ? 'background:#27ae60' : 'background:#e74c3c';
-            html += '<div style="padding:8px;border-radius:8px;margin-top:8px;text-align:center;font-size:12px">';
-            html += '<span style="color:#666">Kết quả thực: </span>';
-            html += '<span style="font-weight:bold;font-size:14px">' + String(actualNum).padStart(2, '0') + '</span>';
-            html += ' <span style="' + hitStyle + ';color:white;padding:2px 8px;border-radius:4px;font-size:11px">' + (isHit ? 'TRÚNG' : 'SAI') + '</span>';
+    // Show hits across ALL prize levels
+    if (actualDayRecord && actualDayRecord !== null) {
+        const { tails: dayTails } = getDayTails(actualDayRecord);
+        const dbVal = actualDayRecord.special ? parseInt(String(actualDayRecord.special).slice(-2)) : null;
+
+        // Check which predicted numbers hit and where
+        const hits = [];
+        ensembleTop6.forEach(num => {
+            const hitPrizes = [];
+            for (const [k, v] of Object.entries(dayTails)) {
+                if (v === num) hitPrizes.push(PRIZE_LABELS[k] || k);
+            }
+            if (hitPrizes.length > 0) hits.push({ num, prizes: hitPrizes });
+        });
+
+        // Show DB result
+        if (dbVal !== null && !isNaN(dbVal)) {
+            const dbHit = ensembleTop6.includes(dbVal);
+            const dbStyle = dbHit ? 'background:#27ae60' : 'background:#e74c3c';
+            html += '<div style="padding:6px 8px;margin-top:8px;text-align:center;font-size:12px">';
+            html += '<span style="color:#666">DB: </span>';
+            html += '<span style="font-weight:bold;font-size:14px">' + String(dbVal).padStart(2, '0') + '</span>';
+            html += ' <span style="' + dbStyle + ';color:white;padding:2px 6px;border-radius:4px;font-size:10px">' + (dbHit ? 'TRUNG' : 'SAI') + '</span>';
             html += '</div>';
+        }
+
+        // Show hits across all prizes
+        if (hits.length > 0) {
+            html += '<div style="padding:6px 8px;text-align:center;font-size:11px;color:#155724;background:#d4edda;border-radius:6px;margin-top:4px">';
+            html += '<b>Trung ' + hits.length + '/6:</b> ';
+            html += hits.map(h => '<span style="font-weight:bold">' + String(h.num).padStart(2,'0') + '</span> <span style="color:#666;font-size:10px">(' + h.prizes.join('+') + ')</span>').join(', ');
+            html += '</div>';
+        } else if (dbVal !== null) {
+            html += '<div style="padding:4px 8px;text-align:center;font-size:11px;color:#856404;background:#fff3cd;border-radius:6px;margin-top:4px">Khong trung so nao trong cac giai</div>';
         }
     }
 
@@ -450,7 +495,7 @@ function renderAnalysis() {
     if (dayData.length > 0) {
         dayData.forEach(d => {
             const histData = DATA.filter(x => x.province === d.province);
-            dayHtml += renderProvCard(pn(d.province), histData, d.province, dateStr, d.special);
+            dayHtml += renderProvCard(pn(d.province), histData, d.province, dateStr, d);
         });
     } else {
         provCodes.forEach(code => {
@@ -528,26 +573,28 @@ function runBacktest() {
                 });
                 const predicted = new Set(Object.entries(ensembleScores).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
 
-                // Chi lay 2 so cuoi GIAI DAC BIET
+                // Check predicted numbers against ALL prize tails
                 const actual = provData[i];
-                const specialVal = actual.special;
-                if (!specialVal) continue;
-                const actualNum = parseInt(String(specialVal).slice(-2));
-                if (isNaN(actualNum)) continue;
+                const { allTails } = getDayTails(actual);
+                if (allTails.size === 0) continue;
 
                 total++;
-                if (predicted.has(actualNum)) hits++;
+                let hit = false;
+                for (const num of predicted) {
+                    if (allTails.has(num)) { hit = true; break; }
+                }
+                if (hit) hits++;
             }
 
             // Accuracy = so ky trung / tong so ky test
             const acc = total > 0 ? (hits / total * 100) : 0;
             const accStr = acc.toFixed(1);
-            const color = acc > 10 ? '#27ae60' : acc > 7 ? '#f39c12' : '#e74c3c';
+            const color = acc > 65 ? '#27ae60' : acc > 57 ? '#f39c12' : '#e74c3c';
             row += '<td style="padding:8px;text-align:center;font-weight:700;color:' + color + '">' + accStr + '%</td>';
         });
 
         // Random baseline: 6/100 = 6%
-        row += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
+        row += '<td style="padding:8px;text-align:center;color:#999">~57%</td>';
         row += '</tr>';
         html += row;
     });
@@ -587,18 +634,20 @@ function runBacktest() {
                 for (let i = 0; i < 100; i++) es[i] += (alpha2[i] / (alpha2[i] + 1)) * 0.4;
                 r.sorted.forEach(([n, score], idx) => { es[n] += (1 - idx/r.sorted.length) * 0.6; });
                 const predicted = new Set(Object.entries(es).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
-                const specialVal = provData[i].special;
-                if (!specialVal) continue;
-                const actualNum = parseInt(String(specialVal).slice(-2));
-                if (isNaN(actualNum)) continue;
+                const { allTails } = getDayTails(provData[i]);
+                if (allTails.size === 0) continue;
                 totalCount++;
-                if (predicted.has(actualNum)) totalHits++;
+                let hit = false;
+                for (const num of predicted) {
+                    if (allTails.has(num)) { hit = true; break; }
+                }
+                if (hit) totalHits++;
             }
         });
         const avg = totalCount > 0 ? (totalHits / totalCount * 100).toFixed(1) : '0.0';
         html += '<td style="padding:8px;text-align:center;color:#1a5276">' + avg + '%</td>';
     });
-    html += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
+    html += '<td style="padding:8px;text-align:center;color:#999">~57%</td>';
     html += '</tr>';
 
     html += '</tbody></table></div>';
@@ -606,9 +655,9 @@ function runBacktest() {
     // Legend + Analysis
     html += '<div style="margin-top:16px;padding:16px;background:#f8f9fa;border-radius:8px;font-size:12px">';
     html += '<h4 style="color:#1a5276;margin-bottom:8px">Cach doc</h4>';
-    html += '<p><b>Phuong phap:</b> Du doan top 6 so co diem cao nhat, kiem tra so cuoi cua <b>Giai DAC BIET</b> co nam trong top 6 khong.</p>';
-    html += '<p><b>Ngau nhien:</b> 6/100 = <b>6.0%</b> la xac suat chon dung ngau nhien 6 so tu 00-99.</p>';
-    html += '<p><b>Mau sac:</b> <span style="color:#27ae60">Xanh > 10%</span> | <span style="color:#f39c12">Vang > 7%</span> | <span style="color:#e74c3c">Do <= 7%</span></p>';
+    html += '<p><b>Phuong phap:</b> Du doan top 6 so co diem cao nhat, kiem tra so cuoi cua <b>tat ca cac giai</b> (G8-DB) co nam trong top 6 khong.</p>';
+    html += '<p><b>Ngau nhien:</b> ~57% la xac suat chon dung it nhat 1 so trong 6 so ngau nhien khi kiem tra tat ca cac giai (khong chi DB).</p>';
+    html += '<p><b>Mau sac:</b> <span style="color:#27ae60">Xanh > 65%</span> | <span style="color:#f39c12">Vang > 57%</span> | <span style="color:#e74c3c">Do <= 57%</span></p>';
     html += '</div>';
 
     resultDiv.innerHTML = html;
