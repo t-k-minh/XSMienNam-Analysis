@@ -203,12 +203,20 @@ def generate_html(lottery: XSMNLottery):
 let DATA = [];
 let ALL_DATES = [];
 
+let resultDateIdx = 0;
+let analysisDateIdx = 0;
+let filterType = 'full';
+let filterDigit = null;
+let selectedNum = null;
+
 // Load data from JSON file
 async function loadData() {{
     try {{
         const response = await fetch('data/xsmn_web.json');
         DATA = await response.json();
         ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
+        resultDateIdx = ALL_DATES.length - 1;
+        analysisDateIdx = ALL_DATES.length - 1;
         document.getElementById('resultDate').textContent = 'Dang tai du lieu...';
         renderResultTable();
         renderAnalysis();
@@ -221,12 +229,6 @@ async function loadData() {{
 
 // Load data on page load
 loadData();
-
-let resultDateIdx = ALL_DATES.length - 1;
-let analysisDateIdx = ALL_DATES.length - 1;
-let filterType = 'full';
-let filterDigit = null;
-let selectedNum = null;
 
 function fmtD(s) {{ const [y,m,d] = s.split('-'); return d+'/'+m+'/'+y; }}
 function formatByType(val, type) {{
