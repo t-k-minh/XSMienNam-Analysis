@@ -366,6 +366,16 @@ function setFilterType(type, el) { document.querySelectorAll('#resultFilter .btn
 function filterByNum(num, el) { document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); if (filterDigit === num) { filterDigit = null; } else { filterDigit = num; el.classList.add('active'); } renderResultTable(); }
 function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderAll(); }
 
+// ===== PROVINCE MAP =====
+const PROVINCE_MAP = {
+    'TTP':'TP.HCM','HCM':'TP.HCM','DT':'Dong Thap','CM':'Ca Mau','BTR':'Ben Tre',
+    'VT':'Vung Tau','BL':'Bac Lieu','DNA':'Dong Nai','CT':'Can Tho','ST':'Soc Trang',
+    'TNI':'Tay Ninh','AG':'An Giang','BTH':'Binh Thuan','VL':'Vinh Long',
+    'BD':'Binh Duong','TV':'Tra Vinh','LA':'Long An','BP':'Binh Phuoc',
+    'HGG':'Hau Giang','TGI':'Tien Giang','KG':'Kien Giang','DL':'Da Lat'
+};
+function pn(code) { return PROVINCE_MAP[code] || code; }
+
 // ===== ANALYSIS (predictions) =====
 
 function renderAnalysis() {
