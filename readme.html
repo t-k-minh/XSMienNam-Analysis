@@ -481,7 +481,7 @@ function runBacktest() {
         if (provData.length < 50) return;
 
         const provLabel = pn(prov);
-        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provName + '</td>';
+        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provLabel + '</td>';
         row += '<td style="padding:8px;text-align:center">' + Math.floor(provData.length * 0.2) + '</td>';
 
         windows.forEach((winDays) => {
