@@ -580,14 +580,9 @@ function runBacktest() {
 }
 
 // Init
-try {
-    renderResultTable();
-    renderAnalysis();
-    runBacktest();
-} catch(e) {
-    console.error('Init error:', e);
-    document.getElementById('resultDate').textContent = 'Error: ' + e.message;
-}
+renderResultTable();
+renderAnalysis();
+runBacktest();
 </script>
 </body>
 </html>
