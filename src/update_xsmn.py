@@ -475,9 +475,9 @@ function renderAnalysis() {{
     const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
     const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
 
-    // Default: show the latest data date on first load
+    // Default: show today in VN timezone
     const latestDate = ALL_DATES[ALL_DATES.length - 1];
-    const analysisTarget = parseLocalDate(latestDate);
+    const analysisTarget = parseLocalDate(todayStr);
     analysisTarget.setDate(analysisTarget.getDate() + dayOffset);
 
     const dateStr = fmtDate(analysisTarget);
@@ -490,8 +490,9 @@ function renderAnalysis() {{
     const dateLabel = DAY_NAMES[dow] + ' ' + fmtD(dateStr) + (isToday ? ' (Hom nay)' : '');
     document.getElementById('analysisDate').textContent = dateLabel;
 
-    // Disable buttons at limits
-    document.getElementById('btnAnalysisPrev').disabled = dayOffset <= -ALL_DATES.length + 1;
+    // Disable buttons: don't go before earliest data, don't go past today
+    const earliestDate = ALL_DATES[0];
+    document.getElementById('btnAnalysisPrev').disabled = analysisTarget.getTime() < parseLocalDate(earliestDate).getTime();
     document.getElementById('btnAnalysisNext').disabled = dayOffset >= 0;
 
     // Info bar
