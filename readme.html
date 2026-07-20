@@ -73,15 +73,15 @@
 <div class="container">
     <header>
         <h1>Xổ số Miền Nam (XSMN)</h1>
-        <p>22 tỉnh thành | 7100 kết quả</p>
+        <p>22 tỉnh thành | 7103 kết quả</p>
     </header>
 
     <div class="card">
         <h2>Kết quả xổ số</h2>
         <div class="date-nav">
-            <button class="btn-nav" id="btnPrev" onclick="prevResultDay()">&#9664;</button>
-            <div class="date" id="resultDate"></div>
-            <button class="btn-nav" id="btnNext" onclick="nextResultDay()">&#9654;</button>
+            <button class="btn-nav" id="btnPrev" onclick="prevDay()">&#9664;</button>
+            <div class="date" id="currentDate"></div>
+            <button class="btn-nav" id="btnNext" onclick="nextDay()">&#9654;</button>
         </div>
         <div class="table-wrap">
             <table>
@@ -108,17 +108,11 @@
         </div>
     </div>
 
-    <div class="card">
-        <h2>Phân tích dự đoán ngày</h2>
-        <div class="date-nav">
-            <button class="btn-nav" id="btnAnalysisPrev" onclick="prevDay()">&#9664;</button>
-            <div class="date" id="analysisDate"></div>
-            <button class="btn-nav" id="btnAnalysisNext" onclick="nextDay()">&#9654;</button>
+        <div style="margin-top:20px; padding-top:16px; border-top: 2px solid #eee;">
+            <h3 style="color:#1a5276; font-size:16px; margin-bottom:12px;">Dự đoán</h3>
+            <div class="prov-info" id="weekInfo"></div>
+            <div id="weekPredictions"></div>
         </div>
-        <div class="prov-info" id="weekInfo"></div>
-
-        <!-- SINGLE DAY PREDICTIONS -->
-        <div id="weekPredictions"></div>
 
         <!-- BACKTEST -->
         <div style="margin-top:24px; padding-top:20px; border-top: 2px solid #eee;">
@@ -137,8 +131,7 @@
 let DATA = [];
 let ALL_DATES = [];
 
-let resultDateIdx = 0;
-let analysisDateIdx = 0;
+let dayOffset = 0;
 let filterType = 'full';
 let filterDigit = null;
 let selectedNum = null;
@@ -149,15 +142,13 @@ async function loadData() {
         const response = await fetch('data/xsmn_web.json');
         DATA = await response.json();
         ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
-        resultDateIdx = ALL_DATES.length - 1;
-        analysisDateIdx = ALL_DATES.length - 1;
-        document.getElementById('resultDate').textContent = 'Dang tai du lieu...';
-        renderResultTable();
-        renderAnalysis();
+        dayOffset = 0;
+        document.getElementById('currentDate').textContent = 'Dang tai du lieu...';
+        renderAll();
         runBacktest();
     } catch(e) {
         console.error('Error loading data:', e);
-        document.getElementById('resultDate').textContent = 'Loi tai du lieu: ' + e.message;
+        document.getElementById('currentDate').textContent = 'Loi tai du lieu: ' + e.message;
     }
 }
 
@@ -206,28 +197,6 @@ function calcScores(data) {
 }
 function predTop6(sorted) { return sorted.slice(0,6).map(([n])=>String(n).padStart(2,'0')).join(' - '); }
 
-// Extract last 2 digits from ALL prize fields of a record
-function getDayTails(rec) {
-    const tails = {};  // {prizeName: last2digit}
-    const allTails = new Set();
-    for (const k in rec) {
-        if (k.startsWith('prize') || k === 'special') {
-            const val = rec[k];
-            if (val !== null && val !== '' && val !== 0) {
-                const n = parseInt(String(val).slice(-2));
-                if (!isNaN(n)) { tails[k] = n; allTails.add(n); }
-            }
-        }
-    }
-    return { tails, allTails };
-}
-
-const PRIZE_LABELS = {
-    'prize8': 'G8', 'prize7': 'G7', 'prize6_1': 'G6.1', 'prize6_2': 'G6.2', 'prize6_3': 'G6.3',
-    'prize5': 'G5', 'prize4_1': 'G4.1', 'prize4_2': 'G4.2', 'prize4_3': 'G4.3', 'prize4_4': 'G4.4',
-    'prize3_1': 'G3.1', 'prize3_2': 'G3.2', 'prize2': 'G2', 'prize1': 'G1', 'special': 'DB'
-};
-
 // Thompson Sampling prediction
 function thompsonPredict(data) {
     const alpha = new Array(100).fill(1);
@@ -244,7 +213,7 @@ function thompsonPredict(data) {
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }
 
-function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecord) {
+function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) {
     // If cutoffDate provided, only use data before that date
     if (cutoffDate) {
         histData = histData.filter(d => d.date < cutoffDate);
@@ -298,40 +267,17 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecor
     // Show prediction
     html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson (40%) + Statistical (60%)</small></div>';
 
-    // Show hits across ALL prize levels
-    if (actualDayRecord && actualDayRecord !== null) {
-        const { tails: dayTails } = getDayTails(actualDayRecord);
-        const dbVal = actualDayRecord.special ? parseInt(String(actualDayRecord.special).slice(-2)) : null;
-
-        // Check which predicted numbers hit and where
-        const hits = [];
-        ensembleTop6.forEach(num => {
-            const hitPrizes = [];
-            for (const [k, v] of Object.entries(dayTails)) {
-                if (v === num) hitPrizes.push(PRIZE_LABELS[k] || k);
-            }
-            if (hitPrizes.length > 0) hits.push({ num, prizes: hitPrizes });
-        });
-
-        // Show DB result
-        if (dbVal !== null && !isNaN(dbVal)) {
-            const dbHit = ensembleTop6.includes(dbVal);
-            const dbStyle = dbHit ? 'background:#27ae60' : 'background:#e74c3c';
-            html += '<div style="padding:6px 8px;margin-top:8px;text-align:center;font-size:12px">';
-            html += '<span style="color:#666">DB: </span>';
-            html += '<span style="font-weight:bold;font-size:14px">' + String(dbVal).padStart(2, '0') + '</span>';
-            html += ' <span style="' + dbStyle + ';color:white;padding:2px 6px;border-radius:4px;font-size:10px">' + (dbHit ? 'TRUNG' : 'SAI') + '</span>';
+    // Show actual result and comparison ONLY if we have real data (not 0 or empty)
+    if (actualResult !== undefined && actualResult !== null && actualResult !== 0 && actualResult !== '') {
+        const actualNum = parseInt(String(actualResult).slice(-2));
+        if (!isNaN(actualNum) && actualNum > 0) {
+            const isHit = ensembleTop6.includes(actualNum);
+            const hitStyle = isHit ? 'background:#27ae60' : 'background:#e74c3c';
+            html += '<div style="padding:8px;border-radius:8px;margin-top:8px;text-align:center;font-size:12px">';
+            html += '<span style="color:#666">Kết quả thực: </span>';
+            html += '<span style="font-weight:bold;font-size:14px">' + String(actualNum).padStart(2, '0') + '</span>';
+            html += ' <span style="' + hitStyle + ';color:white;padding:2px 8px;border-radius:4px;font-size:11px">' + (isHit ? 'TRÚNG' : 'SAI') + '</span>';
             html += '</div>';
-        }
-
-        // Show hits across all prizes
-        if (hits.length > 0) {
-            html += '<div style="padding:6px 8px;text-align:center;font-size:11px;color:#155724;background:#d4edda;border-radius:6px;margin-top:4px">';
-            html += '<b>Trung ' + hits.length + '/6:</b> ';
-            html += hits.map(h => '<span style="font-weight:bold">' + String(h.num).padStart(2,'0') + '</span> <span style="color:#666;font-size:10px">(' + h.prizes.join('+') + ')</span>').join(', ');
-            html += '</div>';
-        } else if (dbVal !== null) {
-            html += '<div style="padding:4px 8px;text-align:center;font-size:11px;color:#856404;background:#fff3cd;border-radius:6px;margin-top:4px">Khong trung so nao trong cac giai</div>';
         }
     }
 
@@ -374,14 +320,25 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecor
 
 // ===== RESULT SECTION =====
 function renderResultTable() {
-    const date = ALL_DATES[resultDateIdx];
-    document.getElementById('resultDate').textContent = fmtD(date);
-    document.getElementById('btnPrev').disabled = resultDateIdx === 0;
-    document.getElementById('btnNext').disabled = resultDateIdx === ALL_DATES.length - 1;
+    // Calculate target date
+    const nowUTC = new Date();
+    const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
+    const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
+    const target = new Date(parseInt(todayStr.slice(0,4)), parseInt(todayStr.slice(5,7))-1, parseInt(todayStr.slice(8,10)));
+    target.setDate(target.getDate() + dayOffset);
+    const dateStr = target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0') + '-' + String(target.getDate()).padStart(2,'0');
+    const date = dateStr;
+    const DAY_NAMES = ['CN','T2','T3','T4','T5','T6','T7'];
+    const dow = target.getDay();
+    const isToday = date === todayStr;
+    let dateLabel = DAY_NAMES[dow] + ' ' + fmtD(date) + (isToday ? ' (Hom nay)' : '');
+    document.getElementById('currentDate').textContent = dateLabel;
+    document.getElementById('btnPrev').disabled = date <= ALL_DATES[0];
+    document.getElementById('btnNext').disabled = false;
     const dayData = DATA.filter(d => d.date === date);
     if (dayData.length === 0) return;
     let headerHtml = '<tr><th>Giải</th>';
-    dayData.forEach(d => { headerHtml += '<th>' + pn(d.province) + '</th>'; });
+    dayData.forEach(d => { headerHtml += '<th>' + d.province_name + '</th>'; });
     headerHtml += '</tr>';
     document.getElementById('resultHead').innerHTML = headerHtml;
     const prizeRows = [['Tám','prize8'],['Bảy','prize7'],['Sáu 1','prize6_1'],['Sáu 2','prize6_2'],['Sáu 3','prize6_3'],['Năm','prize5'],['Tư 1','prize4_1'],['Tư 2','prize4_2'],['Tư 3','prize4_3'],['Tư 4','prize4_4'],['Ba 1','prize3_1'],['Ba 2','prize3_2'],['Nhì','prize2'],['Nhất','prize1'],['Đặc biệt','special']];
@@ -403,94 +360,42 @@ function renderResultTable() {
     });
     document.getElementById('resultBody').innerHTML = bodyHtml;
 }
-function prevResultDay() { if (resultDateIdx > 0) { resultDateIdx--; renderResultTable(); } }
-function nextResultDay() { if (resultDateIdx < ALL_DATES.length - 1) { resultDateIdx++; renderResultTable(); } }
+function prevDay() { dayOffset--; renderAll(); }
+function nextDay() { dayOffset++; renderAll(); }
 function setFilterType(type, el) { document.querySelectorAll('#resultFilter .btn-type').forEach(b => b.classList.remove('active')); el.classList.add('active'); filterType = type; renderResultTable(); }
 function filterByNum(num, el) { document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); if (filterDigit === num) { filterDigit = null; } else { filterDigit = num; el.classList.add('active'); } renderResultTable(); }
-function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }
+function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderAll(); }
 
-// ===== PROVINCE MAP =====
-const PROVINCE_MAP = {
-    'TTP':'TP.HCM','HCM':'TP.HCM','DT':'Dong Thap','CM':'Ca Mau','BTR':'Ben Tre',
-    'VT':'Vung Tau','BL':'Bac Lieu','DNA':'Dong Nai','CT':'Can Tho','ST':'Soc Trang',
-    'TNI':'Tay Ninh','AG':'An Giang','BTH':'Binh Thuan','VL':'Vinh Long',
-    'BD':'Binh Duong','TV':'Tra Vinh','LA':'Long An','BP':'Binh Phuoc',
-    'HGG':'Hau Giang','TGI':'Tien Giang','KG':'Kien Giang','DL':'Da Lat'
-};
-function pn(code) { return PROVINCE_MAP[code] || code; }
-
-// ===== ANALYSIS SECTION =====
-let dayOffset = 0;
-
-function prevDay() { dayOffset--; renderAnalysis(); }
-function nextDay() { dayOffset++; renderAnalysis(); }
+// ===== ANALYSIS (predictions) =====
 
 function renderAnalysis() {
     const SCHEDULE = {
-        0: ['TGI', 'KG', 'DL'],       // Sunday
-        1: ['TTP', 'DT', 'CM'],        // Monday
-        2: ['BTR', 'VT', 'BL'],        // Tuesday
-        3: ['DNA', 'CT', 'ST'],        // Wednesday
-        4: ['TNI', 'AG', 'BTH'],       // Thursday
-        5: ['VL', 'BD', 'TV'],         // Friday
-        6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
+        0: ['TGI', 'KG', 'DL'],
+        1: ['TTP', 'DT', 'CM'],
+        2: ['BTR', 'VT', 'BL'],
+        3: ['DNA', 'CT', 'ST'],
+        4: ['TNI', 'AG', 'BTH'],
+        5: ['VL', 'BD', 'TV'],
+        6: ['HCM', 'LA', 'BP', 'HGG']
     };
-
-    const PROVINCE_MAP = {
-        'TTP': 'TP. Ho Chi Minh', 'HCM': 'TP. Ho Chi Minh',
-        'DT': 'Dong Thap', 'CM': 'Ca Mau', 'BTR': 'Ben Tre',
-        'VT': 'Vung Tau', 'BL': 'Bac Lieu', 'DNA': 'Dong Nai',
-        'CT': 'Can Tho', 'ST': 'Soc Trang', 'TNI': 'Tay Ninh',
-        'AG': 'An Giang', 'BTH': 'Binh Thuan', 'VL': 'Vinh Long',
-        'BD': 'Binh Duong', 'TV': 'Tra Vinh', 'LA': 'Long An',
-        'BP': 'Binh Phuoc', 'HGG': 'Hau Giang', 'TGI': 'Tien Giang',
-        'KG': 'Kien Giang', 'DL': 'Da Lat'
-    };
-
     const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    function parseLocalDate(dateStr) {
-        const [y, m, d] = dateStr.split('-').map(Number);
-        return new Date(y, m - 1, d);
-    }
+    function parseLocalDate(ds) { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); }
+    function fmtD2(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
-    function fmtDate(d) {
-        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    }
-
-    // Get today in VN timezone (UTC+7)
     const nowUTC = new Date();
-    const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
-    const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
-
-    // Default: show today in VN timezone
-    const latestDate = ALL_DATES[ALL_DATES.length - 1];
-    const analysisTarget = parseLocalDate(todayStr);
-    analysisTarget.setDate(analysisTarget.getDate() + dayOffset);
-
-    const dateStr = fmtDate(analysisTarget);
-    const dow = analysisTarget.getDay();
+    const vnNow = new Date(nowUTC.getTime() + 7*60*60*1000);
+    const todayStr = vnNow.getUTCFullYear()+'-'+String(vnNow.getUTCMonth()+1).padStart(2,'0')+'-'+String(vnNow.getUTCDate()).padStart(2,'0');
+    const target = parseLocalDate(todayStr);
+    target.setDate(target.getDate() + dayOffset);
+    const dateStr = fmtD2(target);
+    const dow = target.getDay();
     const provCodes = SCHEDULE[dow] || [];
-    const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
+    const provNames = provCodes.map(c => pn(c));
 
-    // Update date display
-    const isToday = dateStr === todayStr;
-    const dateLabel = DAY_NAMES[dow] + ' ' + fmtD(dateStr) + (isToday ? ' (Hom nay)' : '');
-    document.getElementById('analysisDate').textContent = dateLabel;
+    document.getElementById('weekInfo').innerHTML = '<b>' + provNames.join(', ') + '</b>';
 
-    // Disable buttons: don't go before earliest data, don't go past today
-    const earliestDate = ALL_DATES[0];
-    document.getElementById('btnAnalysisPrev').disabled = analysisTarget.getTime() < parseLocalDate(earliestDate).getTime();
-    document.getElementById('btnAnalysisNext').disabled = dayOffset >= 0;
-
-    // Info bar
-    let info = '<b>' + provNames.join(', ') + '</b>';
-    document.getElementById('weekInfo').innerHTML = info;
-
-    // Day content
-    let dayHtml = '<div style="padding:10px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">';
-    dayHtml += '<div class="three-col">';
-
+    let dayHtml = '<div class="three-col">';
     const dayData = DATA.filter(dd => dd.date === dateStr);
     if (dayData.length > 0) {
         dayData.forEach(d => {
@@ -499,17 +404,17 @@ function renderAnalysis() {
         });
     } else {
         provCodes.forEach(code => {
-            const provName = PROVINCE_MAP[code] || code;
             const histData = DATA.filter(x => x.province === code);
-            if (histData.length > 0) {
-                dayHtml += renderProvCard(provName, histData, code, dateStr, null);
-            }
+            if (histData.length > 0) dayHtml += renderProvCard(pn(code), histData, code, dateStr, null);
         });
     }
-
-    dayHtml += '</div></div>';
+    dayHtml += '</div>';
     document.getElementById('weekPredictions').innerHTML = dayHtml;
 }
+
+function renderAll() { renderAll(); }
+
+let dayOffset = 0;
 
 // ===== BACKTEST =====
 function runBacktest() {
@@ -530,8 +435,8 @@ function runBacktest() {
         const provData = DATA.filter(d => d.province === prov).sort((a,b) => a.date.localeCompare(b.date));
         if (provData.length < 50) return;
 
-        const provLabel = pn(prov);
-        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provLabel + '</td>';
+        const provName = provData[0].province_name;
+        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provName + '</td>';
         row += '<td style="padding:8px;text-align:center">' + Math.floor(provData.length * 0.2) + '</td>';
 
         windows.forEach((winDays) => {
@@ -573,28 +478,26 @@ function runBacktest() {
                 });
                 const predicted = new Set(Object.entries(ensembleScores).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
 
-                // Check predicted numbers against ALL prize tails
+                // Chi lay 2 so cuoi GIAI DAC BIET
                 const actual = provData[i];
-                const { allTails } = getDayTails(actual);
-                if (allTails.size === 0) continue;
+                const specialVal = actual.special;
+                if (!specialVal) continue;
+                const actualNum = parseInt(String(specialVal).slice(-2));
+                if (isNaN(actualNum)) continue;
 
                 total++;
-                let hit = false;
-                for (const num of predicted) {
-                    if (allTails.has(num)) { hit = true; break; }
-                }
-                if (hit) hits++;
+                if (predicted.has(actualNum)) hits++;
             }
 
             // Accuracy = so ky trung / tong so ky test
             const acc = total > 0 ? (hits / total * 100) : 0;
             const accStr = acc.toFixed(1);
-            const color = acc > 65 ? '#27ae60' : acc > 57 ? '#f39c12' : '#e74c3c';
+            const color = acc > 10 ? '#27ae60' : acc > 7 ? '#f39c12' : '#e74c3c';
             row += '<td style="padding:8px;text-align:center;font-weight:700;color:' + color + '">' + accStr + '%</td>';
         });
 
         // Random baseline: 6/100 = 6%
-        row += '<td style="padding:8px;text-align:center;color:#999">~57%</td>';
+        row += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
         row += '</tr>';
         html += row;
     });
@@ -634,20 +537,18 @@ function runBacktest() {
                 for (let i = 0; i < 100; i++) es[i] += (alpha2[i] / (alpha2[i] + 1)) * 0.4;
                 r.sorted.forEach(([n, score], idx) => { es[n] += (1 - idx/r.sorted.length) * 0.6; });
                 const predicted = new Set(Object.entries(es).sort((a,b) => b[1] - a[1]).slice(0, 6).map(([n]) => parseInt(n)));
-                const { allTails } = getDayTails(provData[i]);
-                if (allTails.size === 0) continue;
+                const specialVal = provData[i].special;
+                if (!specialVal) continue;
+                const actualNum = parseInt(String(specialVal).slice(-2));
+                if (isNaN(actualNum)) continue;
                 totalCount++;
-                let hit = false;
-                for (const num of predicted) {
-                    if (allTails.has(num)) { hit = true; break; }
-                }
-                if (hit) totalHits++;
+                if (predicted.has(actualNum)) totalHits++;
             }
         });
         const avg = totalCount > 0 ? (totalHits / totalCount * 100).toFixed(1) : '0.0';
         html += '<td style="padding:8px;text-align:center;color:#1a5276">' + avg + '%</td>';
     });
-    html += '<td style="padding:8px;text-align:center;color:#999">~57%</td>';
+    html += '<td style="padding:8px;text-align:center;color:#999">6.0%</td>';
     html += '</tr>';
 
     html += '</tbody></table></div>';
@@ -655,9 +556,9 @@ function runBacktest() {
     // Legend + Analysis
     html += '<div style="margin-top:16px;padding:16px;background:#f8f9fa;border-radius:8px;font-size:12px">';
     html += '<h4 style="color:#1a5276;margin-bottom:8px">Cach doc</h4>';
-    html += '<p><b>Phuong phap:</b> Du doan top 6 so co diem cao nhat, kiem tra so cuoi cua <b>tat ca cac giai</b> (G8-DB) co nam trong top 6 khong.</p>';
-    html += '<p><b>Ngau nhien:</b> ~57% la xac suat chon dung it nhat 1 so trong 6 so ngau nhien khi kiem tra tat ca cac giai (khong chi DB).</p>';
-    html += '<p><b>Mau sac:</b> <span style="color:#27ae60">Xanh > 65%</span> | <span style="color:#f39c12">Vang > 57%</span> | <span style="color:#e74c3c">Do <= 57%</span></p>';
+    html += '<p><b>Phuong phap:</b> Du doan top 6 so co diem cao nhat, kiem tra so cuoi cua <b>Giai DAC BIET</b> co nam trong top 6 khong.</p>';
+    html += '<p><b>Ngau nhien:</b> 6/100 = <b>6.0%</b> la xac suat chon dung ngau nhien 6 so tu 00-99.</p>';
+    html += '<p><b>Mau sac:</b> <span style="color:#27ae60">Xanh > 10%</span> | <span style="color:#f39c12">Vang > 7%</span> | <span style="color:#e74c3c">Do <= 7%</span></p>';
     html += '</div>';
 
     resultDiv.innerHTML = html;
