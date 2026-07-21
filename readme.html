@@ -79,9 +79,9 @@
     <div class="card">
         <h2>Kết quả xổ số</h2>
         <div class="date-nav">
-            <button class="btn-nav" id="btnPrev" onclick="prevDay()">&#9664;</button>
-            <div class="date" id="currentDate"></div>
-            <button class="btn-nav" id="btnNext" onclick="nextDay()">&#9654;</button>
+            <button class="btn-nav" id="btnPrev" onclick="prevResultDay()">&#9664;</button>
+            <div class="date" id="resultDate"></div>
+            <button class="btn-nav" id="btnNext" onclick="nextResultDay()">&#9654;</button>
         </div>
         <div class="table-wrap">
             <table>
@@ -108,11 +108,17 @@
         </div>
     </div>
 
-        <div style="margin-top:20px; padding-top:16px; border-top: 2px solid #eee;">
-            <h3 style="color:#1a5276; font-size:16px; margin-bottom:12px;">Dự đoán</h3>
-            <div class="prov-info" id="weekInfo"></div>
-            <div id="weekPredictions"></div>
+    <div class="card">
+        <h2>Phân tích dự đoán ngày</h2>
+        <div class="date-nav">
+            <button class="btn-nav" id="btnAnalysisPrev" onclick="prevDay()">&#9664;</button>
+            <div class="date" id="analysisDate"></div>
+            <button class="btn-nav" id="btnAnalysisNext" onclick="nextDay()">&#9654;</button>
         </div>
+        <div class="prov-info" id="weekInfo"></div>
+
+        <!-- SINGLE DAY PREDICTIONS -->
+        <div id="weekPredictions"></div>
 
         <!-- BACKTEST -->
         <div style="margin-top:24px; padding-top:20px; border-top: 2px solid #eee;">
@@ -131,7 +137,8 @@
 let DATA = [];
 let ALL_DATES = [];
 
-let dayOffset = 0;
+let resultDateIdx = 0;
+let analysisDateIdx = 0;
 let filterType = 'full';
 let filterDigit = null;
 let selectedNum = null;
@@ -142,13 +149,15 @@ async function loadData() {
         const response = await fetch('data/xsmn_web.json');
         DATA = await response.json();
         ALL_DATES = [...new Set(DATA.map(d => d.date))].sort();
-        dayOffset = 0;
-        document.getElementById('currentDate').textContent = 'Dang tai du lieu...';
-        renderAll();
+        resultDateIdx = ALL_DATES.length - 1;
+        analysisDateIdx = ALL_DATES.length - 1;
+        document.getElementById('resultDate').textContent = 'Dang tai du lieu...';
+        renderResultTable();
+        renderAnalysis();
         runBacktest();
     } catch(e) {
         console.error('Error loading data:', e);
-        document.getElementById('currentDate').textContent = 'Loi tai du lieu: ' + e.message;
+        document.getElementById('resultDate').textContent = 'Loi tai du lieu: ' + e.message;
     }
 }
 
@@ -213,7 +222,7 @@ function thompsonPredict(data) {
     return new Set(probs.slice(0, 6).map(([n]) => n));
 }
 
-function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecord) {
+function renderProvCard(provName, histData, provCode, cutoffDate, actualResult) {
     // If cutoffDate provided, only use data before that date
     if (cutoffDate) {
         histData = histData.filter(d => d.date < cutoffDate);
@@ -267,34 +276,17 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecor
     // Show prediction
     html += '<div class="predict-box predict-main"><div class="nums">' + ensembleStr + '</div><small>Ensemble: Thompson (40%) + Statistical (60%)</small></div>';
 
-    // Show hits across ALL prize levels
-    if (actualDayRecord && actualDayRecord !== null) {
-        const { tails: dayTails } = getDayTails(actualDayRecord);
-        const dbVal = actualDayRecord.special ? parseInt(String(actualDayRecord.special).slice(-2)) : null;
-        const hits = [];
-        ensembleTop6.forEach(num => {
-            const hitPrizes = [];
-            for (const [k, v] of Object.entries(dayTails)) {
-                if (v === num) hitPrizes.push(PRIZE_LABELS[k] || k);
-            }
-            if (hitPrizes.length > 0) hits.push({ num, prizes: hitPrizes });
-        });
-        if (dbVal !== null && !isNaN(dbVal)) {
-            const dbHit = ensembleTop6.includes(dbVal);
-            const dbStyle = dbHit ? 'background:#27ae60' : 'background:#e74c3c';
-            html += '<div style="padding:6px 8px;margin-top:8px;text-align:center;font-size:12px">';
-            html += '<span style="color:#666">DB: </span>';
-            html += '<span style="font-weight:bold;font-size:14px">' + String(dbVal).padStart(2, '0') + '</span>';
-            html += ' <span style="' + dbStyle + ';color:white;padding:2px 6px;border-radius:4px;font-size:10px">' + (dbHit ? 'TRUNG' : 'SAI') + '</span>';
+    // Show actual result and comparison ONLY if we have real data (not 0 or empty)
+    if (actualResult !== undefined && actualResult !== null && actualResult !== 0 && actualResult !== '') {
+        const actualNum = parseInt(String(actualResult).slice(-2));
+        if (!isNaN(actualNum) && actualNum > 0) {
+            const isHit = ensembleTop6.includes(actualNum);
+            const hitStyle = isHit ? 'background:#27ae60' : 'background:#e74c3c';
+            html += '<div style="padding:8px;border-radius:8px;margin-top:8px;text-align:center;font-size:12px">';
+            html += '<span style="color:#666">Kết quả thực: </span>';
+            html += '<span style="font-weight:bold;font-size:14px">' + String(actualNum).padStart(2, '0') + '</span>';
+            html += ' <span style="' + hitStyle + ';color:white;padding:2px 8px;border-radius:4px;font-size:11px">' + (isHit ? 'TRÚNG' : 'SAI') + '</span>';
             html += '</div>';
-        }
-        if (hits.length > 0) {
-            html += '<div style="padding:6px 8px;text-align:center;font-size:11px;color:#155724;background:#d4edda;border-radius:6px;margin-top:4px">';
-            html += '<b>Trung ' + hits.length + '/6:</b> ';
-            html += hits.map(h => '<span style="font-weight:bold">' + String(h.num).padStart(2,'0') + '</span> <span style="color:#666;font-size:10px">(' + h.prizes.join('+') + ')</span>').join(', ');
-            html += '</div>';
-        } else if (dbVal !== null) {
-            html += '<div style="padding:4px 8px;text-align:center;font-size:11px;color:#856404;background:#fff3cd;border-radius:6px;margin-top:4px">Khong trung so nao trong cac giai</div>';
         }
     }
 
@@ -337,25 +329,14 @@ function renderProvCard(provName, histData, provCode, cutoffDate, actualDayRecor
 
 // ===== RESULT SECTION =====
 function renderResultTable() {
-    // Calculate target date
-    const nowUTC = new Date();
-    const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
-    const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
-    const target = new Date(parseInt(todayStr.slice(0,4)), parseInt(todayStr.slice(5,7))-1, parseInt(todayStr.slice(8,10)));
-    target.setDate(target.getDate() + dayOffset);
-    const dateStr = target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0') + '-' + String(target.getDate()).padStart(2,'0');
-    const date = dateStr;
-    const DAY_NAMES = ['CN','T2','T3','T4','T5','T6','T7'];
-    const dow = target.getDay();
-    const isToday = date === todayStr;
-    let dateLabel = DAY_NAMES[dow] + ' ' + fmtD(date) + (isToday ? ' (Hom nay)' : '');
-    document.getElementById('currentDate').textContent = dateLabel;
-    document.getElementById('btnPrev').disabled = date <= ALL_DATES[0];
-    document.getElementById('btnNext').disabled = false;
+    const date = ALL_DATES[resultDateIdx];
+    document.getElementById('resultDate').textContent = fmtD(date);
+    document.getElementById('btnPrev').disabled = resultDateIdx === 0;
+    document.getElementById('btnNext').disabled = resultDateIdx === ALL_DATES.length - 1;
     const dayData = DATA.filter(d => d.date === date);
     if (dayData.length === 0) return;
     let headerHtml = '<tr><th>Giải</th>';
-    dayData.forEach(d => { headerHtml += '<th>' + pn(d.province) + '</th>'; });
+    dayData.forEach(d => { headerHtml += '<th>' + d.province_name + '</th>'; });
     headerHtml += '</tr>';
     document.getElementById('resultHead').innerHTML = headerHtml;
     const prizeRows = [['Tám','prize8'],['Bảy','prize7'],['Sáu 1','prize6_1'],['Sáu 2','prize6_2'],['Sáu 3','prize6_3'],['Năm','prize5'],['Tư 1','prize4_1'],['Tư 2','prize4_2'],['Tư 3','prize4_3'],['Tư 4','prize4_4'],['Ba 1','prize3_1'],['Ba 2','prize3_2'],['Nhì','prize2'],['Nhất','prize1'],['Đặc biệt','special']];
@@ -377,89 +358,103 @@ function renderResultTable() {
     });
     document.getElementById('resultBody').innerHTML = bodyHtml;
 }
-function prevDay() { dayOffset--; renderAll(); }
-function nextDay() { dayOffset++; renderAll(); }
+function prevResultDay() { if (resultDateIdx > 0) { resultDateIdx--; renderResultTable(); } }
+function nextResultDay() { if (resultDateIdx < ALL_DATES.length - 1) { resultDateIdx++; renderResultTable(); } }
 function setFilterType(type, el) { document.querySelectorAll('#resultFilter .btn-type').forEach(b => b.classList.remove('active')); el.classList.add('active'); filterType = type; renderResultTable(); }
 function filterByNum(num, el) { document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); if (filterDigit === num) { filterDigit = null; } else { filterDigit = num; el.classList.add('active'); } renderResultTable(); }
-function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderAll(); }
+function clearHighlight() { selectedNum = null; filterDigit = null; document.querySelectorAll('#resultFilter .btn-num').forEach(b => b.classList.remove('active')); renderResultTable(); renderAnalysis(); }
 
-// ===== PROVINCE MAP =====
-const PROVINCE_MAP = {
-    'TTP':'TP.HCM','HCM':'TP.HCM','DT':'Dong Thap','CM':'Ca Mau','BTR':'Ben Tre',
-    'VT':'Vung Tau','BL':'Bac Lieu','DNA':'Dong Nai','CT':'Can Tho','ST':'Soc Trang',
-    'TNI':'Tay Ninh','AG':'An Giang','BTH':'Binh Thuan','VL':'Vinh Long',
-    'BD':'Binh Duong','TV':'Tra Vinh','LA':'Long An','BP':'Binh Phuoc',
-    'HGG':'Hau Giang','TGI':'Tien Giang','KG':'Kien Giang','DL':'Da Lat'
-};
-function pn(code) { return PROVINCE_MAP[code] || code; }
+// ===== ANALYSIS SECTION =====
+let dayOffset = 0;
 
-const PRIZE_LABELS = {
-    'prize8':'G8','prize7':'G7','prize6_1':'G6.1','prize6_2':'G6.2','prize6_3':'G6.3',
-    'prize5':'G5','prize4_1':'G4.1','prize4_2':'G4.2','prize4_3':'G4.3','prize4_4':'G4.4',
-    'prize3_1':'G3.1','prize3_2':'G3.2','prize2':'G2','prize1':'G1','special':'DB'
-};
-function getDayTails(rec) {
-    const tails = {};
-    const allTails = new Set();
-    for (const k in rec) {
-        if (k.startsWith('prize') || k === 'special') {
-            const val = rec[k];
-            if (val !== null && val !== '' && val !== 0) {
-                const n = parseInt(String(val).slice(-2));
-                if (!isNaN(n)) { tails[k] = n; allTails.add(n); }
-            }
-        }
-    }
-    return { tails, allTails };
-}
-
-// ===== ANALYSIS (predictions) =====
+function prevDay() { dayOffset--; renderAnalysis(); }
+function nextDay() { dayOffset++; renderAnalysis(); }
 
 function renderAnalysis() {
     const SCHEDULE = {
-        0: ['TGI', 'KG', 'DL'],
-        1: ['TTP', 'DT', 'CM'],
-        2: ['BTR', 'VT', 'BL'],
-        3: ['DNA', 'CT', 'ST'],
-        4: ['TNI', 'AG', 'BTH'],
-        5: ['VL', 'BD', 'TV'],
-        6: ['HCM', 'LA', 'BP', 'HGG']
+        0: ['TGI', 'KG', 'DL'],       // Sunday
+        1: ['TTP', 'DT', 'CM'],        // Monday
+        2: ['BTR', 'VT', 'BL'],        // Tuesday
+        3: ['DNA', 'CT', 'ST'],        // Wednesday
+        4: ['TNI', 'AG', 'BTH'],       // Thursday
+        5: ['VL', 'BD', 'TV'],         // Friday
+        6: ['HCM', 'LA', 'BP', 'HGG']  // Saturday
     };
+
+    const PROVINCE_MAP = {
+        'TTP': 'TP. Ho Chi Minh', 'HCM': 'TP. Ho Chi Minh',
+        'DT': 'Dong Thap', 'CM': 'Ca Mau', 'BTR': 'Ben Tre',
+        'VT': 'Vung Tau', 'BL': 'Bac Lieu', 'DNA': 'Dong Nai',
+        'CT': 'Can Tho', 'ST': 'Soc Trang', 'TNI': 'Tay Ninh',
+        'AG': 'An Giang', 'BTH': 'Binh Thuan', 'VL': 'Vinh Long',
+        'BD': 'Binh Duong', 'TV': 'Tra Vinh', 'LA': 'Long An',
+        'BP': 'Binh Phuoc', 'HGG': 'Hau Giang', 'TGI': 'Tien Giang',
+        'KG': 'Kien Giang', 'DL': 'Da Lat'
+    };
+
     const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    function parseLocalDate(ds) { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); }
-    function fmtD2(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    function parseLocalDate(dateStr) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
 
+    function fmtDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    // Get today in VN timezone (UTC+7)
     const nowUTC = new Date();
-    const vnNow = new Date(nowUTC.getTime() + 7*60*60*1000);
-    const todayStr = vnNow.getUTCFullYear()+'-'+String(vnNow.getUTCMonth()+1).padStart(2,'0')+'-'+String(vnNow.getUTCDate()).padStart(2,'0');
-    const target = parseLocalDate(todayStr);
-    target.setDate(target.getDate() + dayOffset);
-    const dateStr = fmtD2(target);
-    const dow = target.getDay();
+    const vnNow = new Date(nowUTC.getTime() + 7 * 60 * 60 * 1000);
+    const todayStr = vnNow.getUTCFullYear() + '-' + String(vnNow.getUTCMonth() + 1).padStart(2, '0') + '-' + String(vnNow.getUTCDate()).padStart(2, '0');
+
+    // Default: show today in VN timezone
+    const latestDate = ALL_DATES[ALL_DATES.length - 1];
+    const analysisTarget = parseLocalDate(todayStr);
+    analysisTarget.setDate(analysisTarget.getDate() + dayOffset);
+
+    const dateStr = fmtDate(analysisTarget);
+    const dow = analysisTarget.getDay();
     const provCodes = SCHEDULE[dow] || [];
-    const provNames = provCodes.map(c => pn(c));
+    const provNames = provCodes.map(c => PROVINCE_MAP[c] || c);
 
-    document.getElementById('weekInfo').innerHTML = '<b>' + provNames.join(', ') + '</b>';
+    // Update date display
+    const isToday = dateStr === todayStr;
+    const dateLabel = DAY_NAMES[dow] + ' ' + fmtD(dateStr) + (isToday ? ' (Hom nay)' : '');
+    document.getElementById('analysisDate').textContent = dateLabel;
 
-    let dayHtml = '<div class="three-col">';
+    // Disable buttons: don't go before earliest data, don't go past today
+    const earliestDate = ALL_DATES[0];
+    document.getElementById('btnAnalysisPrev').disabled = analysisTarget.getTime() < parseLocalDate(earliestDate).getTime();
+    document.getElementById('btnAnalysisNext').disabled = dayOffset >= 0;
+
+    // Info bar
+    let info = '<b>' + provNames.join(', ') + '</b>';
+    document.getElementById('weekInfo').innerHTML = info;
+
+    // Day content
+    let dayHtml = '<div style="padding:10px;background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">';
+    dayHtml += '<div class="three-col">';
+
     const dayData = DATA.filter(dd => dd.date === dateStr);
     if (dayData.length > 0) {
         dayData.forEach(d => {
             const histData = DATA.filter(x => x.province === d.province);
-            dayHtml += renderProvCard(pn(d.province), histData, d.province, dateStr, d);
+            dayHtml += renderProvCard(d.province_name, histData, d.province, dateStr, d.special);
         });
     } else {
         provCodes.forEach(code => {
+            const provName = PROVINCE_MAP[code] || code;
             const histData = DATA.filter(x => x.province === code);
-            if (histData.length > 0) dayHtml += renderProvCard(pn(code), histData, code, dateStr, null);
+            if (histData.length > 0) {
+                dayHtml += renderProvCard(provName, histData, code, dateStr, null);
+            }
         });
     }
-    dayHtml += '</div>';
+
+    dayHtml += '</div></div>';
     document.getElementById('weekPredictions').innerHTML = dayHtml;
 }
-
-function renderAll() { renderResultTable(); renderAnalysis(); }
 
 // ===== BACKTEST =====
 function runBacktest() {
@@ -480,8 +475,8 @@ function runBacktest() {
         const provData = DATA.filter(d => d.province === prov).sort((a,b) => a.date.localeCompare(b.date));
         if (provData.length < 50) return;
 
-        const provLabel = pn(prov);
-        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provLabel + '</td>';
+        const provName = provData[0].province_name;
+        let row = '<tr style="border-bottom:1px solid #eee"><td style="padding:8px;font-weight:600">' + provName + '</td>';
         row += '<td style="padding:8px;text-align:center">' + Math.floor(provData.length * 0.2) + '</td>';
 
         windows.forEach((winDays) => {
